@@ -12,15 +12,16 @@ import (
 )
 
 const (
-	applicationName = "CUCM PerfMon Exporter 2020.03.10"                     // application name
-	httpApplication = "cucm-permon-exporter/2020.03.10"                      //  http user agent
+	applicationName = "CUCM PerfMon Exporter 2020.12.08"                     // application name
+	httpApplication = "cucm-permon-exporter/2020.12.08"                      //  http user agent
 	letterBytes     = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // map for random string
 	letterIdxBits   = 6                                                      // 6 bits to represent a letter index
 	letterIdxMask   = 1<<letterIdxBits - 1                                   // All 1-bits, as many as letterIdxBits
 	letterIdxMax    = 63 / letterIdxBits                                     // # of letter indices fitting in 63 bits
 	maxRandomSize   = 10                                                     // required size of random string
-	shortBodyChars  = 120                                                    // Max length print from string
-	TimeFormat      = "15:04:05.0000"                                        // time format
+	//shortBodyChars  = 120                                                    // Max length print from string
+	TimeFormat           = "15:04:05.0000" // time format
+	sleepBetweenSessions = 10              // sleep second between open new session or reconnect to server
 )
 
 var src = rand.NewSource(time.Now().UnixNano())
@@ -54,22 +55,21 @@ func RandomString() string {
 func monitoringOpenSession() (ret bool, err error) {
 	log.WithFields(log.Fields{"operation": "monitoringOpenSession"}).Trace("try open new monitor session")
 	if err = monitors.OpenSession(); err != nil {
-		log.WithFields(log.Fields{"operation": "monitoringOpenSession"}).Fatal("problem open monitor session to target server")
+		log.WithFields(log.Fields{"operation": "monitoringOpenSession"}).Error("problem open monitor session to target server")
 		return true, err
 	}
 	monitors.AddCounters()
+	prometheusCreateMetrics()
 	return false, nil
 }
 
 func monitoringProcess() {
-	var requiredStop bool
 	done := make(chan bool, 1)
 	quit := make(chan os.Signal, 1)
 
 	signal.Notify(quit, os.Interrupt)
 
 	log.WithFields(log.Fields{"operation": "monitoringProcess"}).Debug("start with configuration")
-	requiredStop = false
 	log.WithFields(log.Fields{"operation": "monitoringProcess"}).Trace("read performance counters and description")
 	monitors = *NewPerfMonServers()
 	_ = monitors.ListAllCounters()
@@ -80,13 +80,11 @@ func monitoringProcess() {
 
 	if toStopChannel == nil {
 		log.WithFields(log.Fields{"operation": "monitoringProcess"}).Fatal("problem start http listener")
-		requiredStop = true
 		return
 	}
 
 	requiredStop, err := monitoringOpenSession()
 	if err != nil && err.Error() == "" {
-		requiredStop = true
 		return
 	}
 
@@ -100,20 +98,23 @@ func monitoringProcess() {
 		}
 		if !requiredStop {
 			if !monitors.ExistSession() {
+				log.WithFields(log.Fields{"operation": "monitoringProcess"}).Infof("session is closed wait %ds and try open new one", sleepBetweenSessions)
+				time.Sleep(time.Second * sleepBetweenSessions)
 				_, err = monitoringOpenSession()
 			}
 			if err == nil {
 				err = monitors.CollectSessionData()
 			}
 			if err != nil {
-				log.WithFields(log.Fields{"operation": "monitoringProcess"}).Info("problem read data")
+				log.WithFields(log.Fields{"operation": "monitoringProcess"}).Info("problem read data close session")
 				monitors.CloseSession()
 			} else {
 				log.WithFields(log.Fields{"operation": "monitoringProcess"}).Trace("collect one data")
 			}
 			select {
-			case requiredStop = <-toStopChannel:
+			case <-toStopChannel:
 				requiredStop = true
+				log.WithFields(log.Fields{"operation": "monitoringProcess"}).Trace("request stop channel for monitoring")
 				break
 			case <-time.After(time.Second * 5):
 				break
@@ -129,9 +130,9 @@ func main() {
 	kingpin.Version(VersionDetail())
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
+	err := config.LoadFile(*configFile)
 	initLog()
 
-	err := config.LoadFile(*configFile)
 	if *showConfig {
 		fmt.Println(config.print())
 		log.WithFields(log.Fields{"ApplicationName": applicationName}).Info("show only configuration ane exit")

@@ -2,20 +2,18 @@ package main
 
 import (
 	"crypto/tls"
-	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"time"
 )
 
 type perfClient struct {
-	client         *http.Client // reference to exist HTTP Client
-	session        string       // session
-	lastRequest    time.Time    // last request
-	requests       uint64       // success created request
-	responses      uint64       // success obtains responses
-	responseErrors uint64       // error obtain responses
+	client  *http.Client // reference to exist HTTP Client
+	session string       // session
+	//lastRequest    time.Time    // last request
+	requests       uint64 // success created request
+	responses      uint64 // success obtains responses
+	responseErrors uint64 // error obtain responses
 }
 
 func NewPerfClient() *perfClient {
@@ -56,7 +54,7 @@ func (p *perfClient) processRequest(name string, inner string) (body string, err
 	if resp != nil && resp.StatusCode > 299 {
 		log.WithFields(p.logFields(name)).Errorf("problem read %s response. Status code: %s", name, resp.Status)
 		p.responseErrors++
-		return fmt.Sprintf("%d", resp.StatusCode), errors.New(fmt.Sprintf("response status is %s", resp.Status))
+		return fmt.Sprintf("%d", resp.StatusCode), fmt.Errorf("response status is %s", resp.Status)
 	}
 
 	if err != nil {

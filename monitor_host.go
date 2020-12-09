@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/xml"
-	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 )
@@ -66,31 +65,31 @@ func (c *counterGroup) counterPathBase(server string, counter string) string {
 	return fmt.Sprintf("\\\\%s\\%s\\%s", server, c.groupName, counter)
 }
 
-func (c *counterGroup) counterPathWithInstanceBase(server string, instance string, counter string) string {
-	return fmt.Sprintf("\\\\%s\\%s(%s)\\%s", server, c.groupName, instance, counter)
-}
-
-func (g *counterGroupList) counterPathBase(server string, counter string) string {
-	for _, gr := range g.group {
-		for _, name := range gr.counterName {
-			if name.name == counter {
-				return gr.counterPathBase(server, counter)
-			}
-		}
-	}
-	return ""
-}
-
-func (g *counterGroupList) counterPathWithInstanceBase(server string, instance string, counter string) string {
-	for _, gr := range g.group {
-		for _, name := range gr.counterName {
-			if name.name == counter {
-				return gr.counterPathWithInstanceBase(server, instance, counter)
-			}
-		}
-	}
-	return ""
-}
+//func (c *counterGroup) counterPathWithInstanceBase(server string, instance string, counter string) string {
+//	return fmt.Sprintf("\\\\%s\\%s(%s)\\%s", server, c.groupName, instance, counter)
+//}
+//
+//func (g *counterGroupList) counterPathBase(server string, counter string) string {
+//	for _, gr := range g.group {
+//		for _, name := range gr.counterName {
+//			if name.name == counter {
+//				return gr.counterPathBase(server, counter)
+//			}
+//		}
+//	}
+//	return ""
+//}
+//
+//func (g *counterGroupList) counterPathWithInstanceBase(server string, instance string, counter string) string {
+//	for _, gr := range g.group {
+//		for _, name := range gr.counterName {
+//			if name.name == counter {
+//				return gr.counterPathWithInstanceBase(server, instance, counter)
+//			}
+//		}
+//	}
+//	return ""
+//}
 
 func NewPerMonHost(srv string) *perfMonHost {
 	grp := make([]counterGroup, 0)
@@ -163,15 +162,14 @@ func (h *perfMonHost) AddCounters(client *perfClient) (err error) {
 	return nil
 }
 
-func (h *perfMonHost) RemoveCounter() (err error) {
-
-	return nil
-}
-
 // Collect all counters from server
 //
 func (h *perfMonHost) ListCounters(client *perfClient) (err error) {
 	log.WithFields(h.logFields("ListCounters")).Trace("collect counters from server")
+	if len(h.counterList.group) > 0 {
+		log.WithFields(h.logFields("ListCounters")).Trace("collect counters are read from list")
+		return nil
+	}
 	s := fmt.Sprintf(EnvelopeList, h.server)
 	body, err := client.processRequest("ListCounters", s)
 	if err != nil && body == "401" {
@@ -224,7 +222,7 @@ func (h *perfMonHost) ReadCounterDescription(client *perfClient) (err error) {
 		}
 	}
 	if errCounter > 0 {
-		return errors.New(fmt.Sprintf("in read description for counters get %d errors", errCounter))
+		return fmt.Errorf("in read description for counters get %d errors", errCounter)
 	}
 	return nil
 

@@ -31,3 +31,7 @@ out/
 
 # JIRA plugin
 atlassian-ide-plugin.xml
+
+# ignore stored configuration
+data/
+log/

@@ -22,6 +22,7 @@ type FaultResponse struct {
 func perfRequestCreate(requestId string, body string) (req *http.Request, err error) {
 	log.WithFields(log.Fields{"routine": "perfRequestCreate", "requestId": requestId}).Trace("prepare request")
 	server := fmt.Sprintf("https://%s:8443/perfmonservice2/services/PerfmonService?wsdl", config.ApiAddress)
+	log.WithFields(log.Fields{"routine": "perfRequestCreate", "requestId": requestId}).Tracef("prepare server API name: %s", server)
 	req, err = http.NewRequest("POST", server, bytes.NewBuffer([]byte(body)))
 	if err != nil {
 		log.WithField("routine", "perfRequestCreate").Errorf("problem create request. Error: %s", err)

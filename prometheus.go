@@ -24,6 +24,87 @@ func newWebServer(quit chan<- os.Signal) *http.Server {
 	router := http.NewServeMux()
 
 	//r := prometheus.NewRegistry()
+	//callMetrics = make(map[string]*prometheus.GaugeVec)
+	//counterMetrics = make(map[string]*prometheus.CounterVec)
+	//counterActual = make(map[string]float64)
+
+	//var counter *counterDetails
+	//var err error
+
+	//for _, cnt := range AllowedCounterNames {
+	//	if !config.Metrics.enablePrometheusCounter(cnt.allowedCounterName) {
+	//		log.WithFields(log.Fields{"operation": "newWebServer", "metricsName": cnt.prometheusName}).Infof("metrics %s not enabled", cnt.allowedCounterName)
+	//		continue
+	//	}
+	//	counter, err = monitors.GetCounterDetails(cnt.allowedCounterName)
+	//	if err != nil {
+	//		log.WithFields(log.Fields{"operation": "newWebServer", "metricsName": cnt.prometheusName}).Errorf("not defined description for %s", cnt.allowedCounterName)
+	//	}
+	//	if counter == nil {
+	//		counter = &counterDetails{name: cnt.allowedCounterName, description: fmt.Sprintf("Description for %s not exists", cnt.allowedCounterName)}
+	//	}
+	//	if strings.HasSuffix(strings.ToLower(cnt.allowedCounterName), "failed") {
+	//		counterMetrics[cnt.allowedCounterName] = prometheus.NewCounterVec(
+	//			prometheus.CounterOpts{
+	//				Name: cnt.prometheusName,
+	//				Help: counter.description,
+	//			}, []string{"server"})
+	//		prometheus.MustRegister(counterMetrics[cnt.allowedCounterName])
+	//		counterActual[cnt.allowedCounterName] = float64(0)
+	//	} else {
+	//		callMetrics[cnt.allowedCounterName] = prometheus.NewGaugeVec(
+	//			prometheus.GaugeOpts{
+	//				Name: cnt.prometheusName,
+	//				Help: counter.description,
+	//			}, []string{"server"})
+	//		prometheus.MustRegister(callMetrics[cnt.allowedCounterName])
+	//		for _, srv := range monitors.monitors {
+	//			callMetrics[cnt.allowedCounterName].WithLabelValues(srv.server).Set(0)
+	//		}
+	//	}
+	//}
+
+	router.Handle("/version", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.WithFields(log.Fields{"metricsUri": "/version", "operation": "newWebServer"}).Debug("request /version")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(VersionDetail()))
+	}))
+	router.Handle("/err", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.WithFields(log.Fields{"metricsUri": "/err", "operation": "newWebServer"}).Debug("request /er")
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte("Error"))
+	}))
+	router.Handle("/config", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.WithFields(log.Fields{"metricsUri": "/config", "operation": "newWebServer"}).Debug("request /config")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(config.print()))
+	}))
+	router.Handle("/metrics", promhttp.Handler())
+	router.HandleFunc("/stop", func(writer http.ResponseWriter, request *http.Request) {
+		log.WithFields(log.Fields{"metricsUri": "/stop", "operation": "newWebServer"}).Infof("request from %s", request.URL.Path)
+		writer.WriteHeader(http.StatusOK)
+		_, _ = writer.Write([]byte("Stop processing"))
+		select {
+		case toStopChannel <- true:
+			quit <- syscall.SIGINT
+			break
+		case <-time.After(time.Millisecond * 100):
+			break
+		default:
+			break
+		}
+
+	})
+
+	port := fmt.Sprintf(":%d", config.Port)
+	server := &http.Server{Handler: router, Addr: port}
+
+	log.WithFields(log.Fields{"port": port, "metricsUri": "/metrics", "operation": "newWebServer"}).Infof("listener start on port %d", config.Port)
+	return server
+}
+
+func prometheusCreateMetrics() {
+	log.WithFields(log.Fields{"operation": "prometheusCreateMetrics"}).Infof("prepare new metrics")
 	callMetrics = make(map[string]*prometheus.GaugeVec)
 	counterMetrics = make(map[string]*prometheus.CounterVec)
 	counterActual = make(map[string]float64)
@@ -63,44 +144,21 @@ func newWebServer(quit chan<- os.Signal) *http.Server {
 			}
 		}
 	}
+}
 
-	router.Handle("/version", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.WithFields(log.Fields{"metricsUri": "/version", "operation": "newWebServer"}).Debug("request /version")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(VersionDetail()))
-	}))
-	router.Handle("/err", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.WithFields(log.Fields{"metricsUri": "/err", "operation": "newWebServer"}).Debug("request /er")
-		w.WriteHeader(http.StatusNotFound)
-		_, _ = w.Write([]byte("Error"))
-	}))
-	router.Handle("/config", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.WithFields(log.Fields{"metricsUri": "/config", "operation": "newWebServer"}).Debug("request /config")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(config.print()))
-	}))
-	router.Handle("/metrics", promhttp.Handler())
-	router.HandleFunc("/stop", func(writer http.ResponseWriter, request *http.Request) {
-		log.WithFields(log.Fields{"metricsUri": "/stop", "operation": "newWebServer"}).Infof("request from %s", request.URL.Path)
-		writer.WriteHeader(http.StatusOK)
-		_, _ = writer.Write([]byte("Stop processing"))
-		select {
-		case toStopChannel <- true:
-			quit <- syscall.SIGINT
-			break
-		case <-time.After(time.Millisecond * 100):
-			break
-		default:
-			break
+func prometheusRemoveMetrics() {
+	log.WithFields(log.Fields{"operation": "prometheusCreateMetrics"}).Infof("prepare remove all metrics")
+	for _, cnt := range AllowedCounterNames {
+		if strings.HasSuffix(strings.ToLower(cnt.allowedCounterName), "failed") {
+			prometheus.Unregister(counterMetrics[cnt.allowedCounterName])
+			counterActual[cnt.allowedCounterName] = float64(0)
+		} else {
+			prometheus.Unregister(callMetrics[cnt.allowedCounterName])
+			for _, srv := range monitors.monitors {
+				callMetrics[cnt.allowedCounterName].WithLabelValues(srv.server).Set(0)
+			}
 		}
-
-	})
-
-	port := fmt.Sprintf(":%d", config.Port)
-	server := &http.Server{Handler: router, Addr: port}
-
-	log.WithFields(log.Fields{"port": port, "metricsUri": "/metrics", "operation": "newWebServer"}).Infof("listener start on port %d", config.Port)
-	return server
+	}
 }
 
 func gracefullyShutdown(server *http.Server, quit <-chan os.Signal, done chan<- bool) {

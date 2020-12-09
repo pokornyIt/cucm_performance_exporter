@@ -8,7 +8,6 @@ import (
 	"os"
 	"path"
 	"runtime"
-	"sort"
 	"strings"
 )
 
@@ -17,47 +16,32 @@ const (
 	identificationIdOrder = "00__id__"
 )
 
-var (
-	logLevel         string
-	logPath          string
-	logToFile        bool
-	logMaxSize       int
-	logMaxAge        int
-	logMaxBackups    int
-	logReportCallers bool
-	logJsonFormat    bool
-	logSilent        bool
-)
-
-func validLogLevel() log.Level {
-	switch strings.ToUpper(logLevel) {
+func validLogLevel(level string) log.Level {
+	switch strings.ToUpper(level) {
 	case "FAT", "F", "FATAL":
-		logLevel = "Fatal"
 		return log.FatalLevel
 	case "ERR", "E", "ERROR":
-		logLevel = "ERROR"
 		return log.ErrorLevel
 	case "WAR", "W", "WARNING":
-		logLevel = "WARNING"
 		return log.WarnLevel
 	case "INF", "I", "INFO":
-		logLevel = "INFO"
 		return log.InfoLevel
 	case "TRC", "T", "TRACE":
-		logLevel = "TRACE"
 		return log.TraceLevel
-	default:
-		logLevel = "DEBUG"
+	case "DEB", "D", "DEBUG":
 		return log.DebugLevel
+	default:
+		return log.InfoLevel
 	}
 }
 
 func initLog() {
+	logToFile := config.Log.LogToFile()
 	if help {
 		logToFile = false
 	}
 
-	if logJsonFormat {
+	if config.Log.JSONFormat {
 		jsonFormatter := new(log.JSONFormatter)
 		jsonFormatter.TimestampFormat = "2006-01-02 15:04:05.000"
 		jsonFormatter.CallerPrettyfier = func(f *runtime.Frame) (string, string) {
@@ -74,31 +58,31 @@ func initLog() {
 		Formatter.TimestampFormat = "2006-01-02 15:04:05.000"
 		Formatter.FullTimestamp = true
 		Formatter.DisableLevelTruncation = false
-		Formatter.SortingFunc = func(i []string) {
-			if len(i) < 2 {
-				return
-			}
-			idx := -1
-			for j, s := range i {
-				if s == identificationId {
-					idx = j
-				}
-			}
-			if idx > -1 && idx < len(i) {
-				i[idx] = identificationIdOrder
-			}
-			sort.Strings(i)
-			idx = -1
-			for j, s := range i {
-				if s == identificationIdOrder {
-					idx = j
-				}
-			}
-			if idx > -1 && idx < len(i) {
-				i[idx] = identificationId
-			}
-
-		}
+		//Formatter.SortingFunc = func(i []string) {
+		//	if len(i) < 2 {
+		//		return
+		//	}
+		//	idx := -1
+		//	for j, s := range i {
+		//		if s == identificationId {
+		//			idx = j
+		//		}
+		//	}
+		//	if idx > -1 && idx < len(i) {
+		//		i[idx] = identificationIdOrder
+		//	}
+		//	sort.Strings(i)
+		//	idx = -1
+		//	for j, s := range i {
+		//		if s == identificationIdOrder {
+		//			idx = j
+		//		}
+		//	}
+		//	if idx > -1 && idx < len(i) {
+		//		i[idx] = identificationId
+		//	}
+		//
+		//}
 		Formatter.ForceColors = !logToFile
 		Formatter.CallerPrettyfier = func(f *runtime.Frame) (string, string) {
 			filename := path.Base(f.File)
@@ -111,25 +95,24 @@ func initLog() {
 		log.SetFormatter(Formatter)
 	}
 
-	log.SetReportCaller(logReportCallers)
-	lvl := validLogLevel()
-	log.SetLevel(lvl)
+	log.SetReportCaller(config.Log.LogProgramInfo)
+	log.SetLevel(validLogLevel(config.Log.Level))
 	if logToFile {
 		lJack := &lumberjack.Logger{
-			Filename:   logPath,
-			MaxBackups: logMaxBackups,
-			MaxAge:     logMaxAge,
-			MaxSize:    logMaxSize,
+			Filename:   config.Log.FileName,
+			MaxBackups: config.Log.MaxBackups,
+			MaxAge:     config.Log.MaxAge,
+			MaxSize:    config.Log.MaxSize,
 			Compress:   true,
 		}
-		if logSilent {
+		if config.Log.Quiet {
 			log.SetOutput(lJack)
 		} else {
 			mWriter := io.MultiWriter(os.Stdout, lJack)
 			log.SetOutput(mWriter)
 		}
 	} else {
-		if logSilent {
+		if config.Log.Quiet {
 			log.SetLevel(log.PanicLevel)
 		}
 	}
