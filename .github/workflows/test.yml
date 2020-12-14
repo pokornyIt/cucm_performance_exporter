@@ -90,8 +90,9 @@ jobs:
 
       - name: TAR/ZIP files
         run: |
-          cd ${{ env.BUILD_ARTIFACTS_FOLDER }}/
-          if [ ${GOOS} == 'windows']; then
+          cd ${{ env.BUILD_ARTIFACTS_FOLDER }}
+
+          if [ ${GOOS} == 'windows' ]; then
             zip -vr ${{ env.RELEASE_ASSET_NAME }}${{ env.RELEASE_ASSET_EXT }} *
           else
             tar cvfz ${{ env.RELEASE_ASSET_NAME }}${{ env.RELEASE_ASSET_EXT }} *
