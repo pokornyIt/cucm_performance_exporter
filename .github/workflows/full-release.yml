@@ -50,8 +50,8 @@ jobs:
           echo BUILD_USER=$(echo ${GITHUB_ACTOR}@${HOSTNAME}) >> $GITHUB_ENV
           echo BUILD_ARTIFACTS_FOLDER=$(echo build-artifacts-$(date +%s)) >> $GITHUB_ENV
           echo BINARY_NAME=$(echo basename ${GITHUB_REPOSITORY}) >> $GITHUB_ENV
-          echo GOOS=$(echo ${matrix.goos}) >> $GITHUB_ENV
-          echo GOARCH=$(echo ${matrix.goarch}) >> $GITHUB_ENV
+          echo GOOS=$(echo ${{ matrix.goos }}) >> $GITHUB_ENV
+          echo GOARCH=$(echo ${{ matrix.goarch }}) >> $GITHUB_ENV
           echo RELEASE_ASSET_NAME=$(echo ${BINARY_NAME}-${APP_VERSION}-${GOOS}-${GOARCH}${BINARY_EXT}) >> $GITHUB_ENV
           if [ ${GOOS} == 'windows']; then
             echo BINARY_EXT='.exe' >> $GITHUB_ENV
@@ -72,7 +72,7 @@ jobs:
           cp -r LICENSE README.md config.yml ${{ env.BUILD_ARTIFACTS_FOLDER }}/
 
       - name: Build
-        run: GOOS =${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o "${{ env.BUILD_ARTIFACTS_FOLDER }}/${{ env.BINARY_NAME }}${{ env.BINARY_EXT }}" -ldflags="-X 'main.Version=${{ env.APP_VERSION }}' -X 'main.BuildDate=${{ env.BUILD_TIME }}' -X 'main.Branch=${{ github.ref }}' -X 'main.Revision=${{ github.SHA }}' -X 'main.BuildUser=${{ env.BUILD_USER }}'" .
+        run: go build -v -o "${{ env.BUILD_ARTIFACTS_FOLDER }}/${{ env.BINARY_NAME }}${{ env.BINARY_EXT }}" -ldflags="-X 'main.Version=${{ env.APP_VERSION }}' -X 'main.BuildDate=${{ env.BUILD_TIME }}' -X 'main.Branch=${{ github.ref }}' -X 'main.Revision=${{ github.SHA }}' -X 'main.BuildUser=${{ env.BUILD_USER }}'" .
 
       - name: List files in directory
         run: ls -lha ${{ env.BUILD_ARTIFACTS_FOLDER }}/
