@@ -44,7 +44,7 @@ jobs:
         uses: managedkaos/print-env@v1.0
 
       - name: Build
-        run: go build -v -ldflags="-X 'main.Version=${{ env.APP_VERSION }}' -X 'main.BuildDate=${{ github.BUILD_TIME }}' -X 'main.Branch=${{ github.ref }}' -X 'main.Revision=${{ github.SHA }}' -X 'main.BuildUser=${{ env.BUILD_USER }}'" .
+        run: go build -v -ldflags="-X 'main.Version=${{ env.APP_VERSION }}' -X 'main.BuildDate=${{ env.BUILD_TIME }}' -X 'main.Branch=${{ github.ref }}' -X 'main.Revision=${{ github.SHA }}' -X 'main.BuildUser=${{ env.BUILD_USER }}'" .
 
       - name: Test
         run: go test -v .
