@@ -43,3 +43,6 @@ jobs:
 
       - name: Test
         run: go test -v .
+
+      - name: Show Data
+        run: ./cucm_performance_exporter --version
