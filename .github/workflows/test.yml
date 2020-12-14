@@ -34,12 +34,12 @@ jobs:
           fi
 
       - name: Set APP_VERSION env
-        run: echo ::set-env name=APP_VERSION::$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev )
+        run: echo 'APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev )' >> $GITHUB_ENV
       - name: Set BUILD_TIME env
-        run: echo ::set-env name=BUILD_TIME::$(date)
+        run: echo 'BUILD_TIME=$(date)' >> GITHUB_ENV
 
       - name: Build
-        run: go build -v -ldflags="-X 'main.Version=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev )' -X 'main.Branch=$(git rev-parse --short HEAD)' -X 'main.BuildDate=$(date -Is)' -X main.BuildUser='$(id -u -n)'" .
+        run: go build -v -ldflags="-X 'main.Version=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev )' -X 'main.Revision=$(git rev-parse --short HEAD)' -X 'main.BuildDate=$(date -Is)' -X main.BuildUser='$(id -u -n)'" .
 
       - name: Test
         run: go test -v .

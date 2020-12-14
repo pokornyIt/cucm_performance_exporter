@@ -19,12 +19,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+
       - name: Set APP_VERSION env
-        run: echo ::set-env name=APP_VERSION::$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev )
+        run: echo 'APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev )' >> $GITHUB_ENV
       - name: Set BUILD_TIME env
-        run: echo ::set-env name=BUILD_TIME::$(date)
+        run: echo 'BUILD_TIME=$(date)' >> GITHUB_ENV
+
       - name: Set BUILD_USER env
-        run: echo ::set-env name=BUILD_USER::$(echo ${GITHUB_ACTOR}@${HOSTNAME})
+        run: echo 'BUILD_USER=$(echo ${GITHUB_ACTOR}@${HOSTNAME})' >> GITHUB_ENV
       - name: Environment Printer
         uses: managedkaos/print-env@v1.0
 
@@ -36,4 +38,4 @@ jobs:
           extra_files: LICENSE README.md config.yml
           pre_command: go get -v ./...
           build_flags: -v
-          ldflags: -X "main.Version=${{ env.APP_VERSION }}" -X "main.BuildDate=${{ env.BUILD_TIME }}" -X "main.Branch=${{ github.ref }}" -X "main.Revision=${{ github.SHA }}" -X "main.BuildUser=${{ env.BUILD_USER }}"
+          ldflags: -X "main.Version=${{ github.APP_VERSION }}" -X "main.BuildDate=${{ github.BUILD_TIME }}" -X "main.Branch=${{ github.ref }}" -X "main.Revision=${{ github.SHA }}" -X "main.BuildUser=${{ github.BUILD_USER }}"
