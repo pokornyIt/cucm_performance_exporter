@@ -31,7 +31,7 @@ jobs:
       - name: Set up Go 1.x
         uses: actions/setup-go@v2
         with:
-          go-version: ^1.14
+          go-version: ^1.15
         id: go
 
       - name: Check out code into the Go module directory
@@ -40,10 +40,6 @@ jobs:
       - name: Get dependencies
         run: |
           go get -v -t -d ./...
-          if [ -f Gopkg.toml ]; then
-              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-              dep ensure
-          fi
 
       - name: Setup environment
         run: |
@@ -64,7 +60,7 @@ jobs:
             echo MEDIA_TYPE='application/gzip' >> $GITHUB_ENV
           fi
 
-      - name: Set asser name
+      - name: Set asset name
         run: echo RELEASE_ASSET_NAME=$(echo ${{ env.BINARY_NAME }}-${{ env.APP_VERSION }}-${{ env.GOOS }}-${{ env.GOARCH }}) >> $GITHUB_ENV
 
       - name: Environment Printer
@@ -104,4 +100,3 @@ jobs:
       - name: List files in directory
         run: |
           ls -lha ${{ env.BUILD_ARTIFACTS_FOLDER }}/
-          ls -lha .
