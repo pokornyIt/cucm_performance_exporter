@@ -72,7 +72,7 @@ jobs:
           cp -r LICENSE README.md config.yml ${{ env.BUILD_ARTIFACTS_FOLDER }}/
 
       - name: Build
-        run: GOOS =${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o "${{ env.BUILD_ARTIFACTS_FOLDER }}/${{ BINARY_NAME }}${{ BINARY_EXT }}" -ldflags="-X 'main.Version=${{ env.APP_VERSION }}' -X 'main.BuildDate=${{ env.BUILD_TIME }}' -X 'main.Branch=${{ github.ref }}' -X 'main.Revision=${{ github.SHA }}' -X 'main.BuildUser=${{ env.BUILD_USER }}'" .
+        run: GOOS =${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o "${{ env.BUILD_ARTIFACTS_FOLDER }}/${{ env.BINARY_NAME }}${{ env.BINARY_EXT }}" -ldflags="-X 'main.Version=${{ env.APP_VERSION }}' -X 'main.BuildDate=${{ env.BUILD_TIME }}' -X 'main.Branch=${{ github.ref }}' -X 'main.Revision=${{ github.SHA }}' -X 'main.BuildUser=${{ env.BUILD_USER }}'" .
 
       - name: List files in directory
         run: ls -lha ${{ env.BUILD_ARTIFACTS_FOLDER }}/
@@ -81,9 +81,9 @@ jobs:
         run: |
           cd ${{ env.BUILD_ARTIFACTS_FOLDER }}/
           if [ ${GOOS} == 'windows']; then
-            zip -vr ${{ env.RELEASE_ASSET_NAME }}.zip *
+            zip -vr ${{ env.RELEASE_ASSET_NAME }}${{ env.RELEASE_ASSET_EXT }} *
           else
-            tar cvfz ${{ env.RELEASE_ASSET_NAME }}.tar.gz *
+            tar cvfz ${{ env.RELEASE_ASSET_NAME }}${{ env.RELEASE_ASSET_EXT }} *
           fi
         id: create_tar
 
@@ -105,6 +105,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ env.BUILD_ARTIFACTS_FOLDER }}/cucm_performance_exporter.tar.gz
-          asset_name: cucm_performance_exporter.tar.gz
-          asset_content_type: application/gzip
+          asset_path: ./${{ env.BUILD_ARTIFACTS_FOLDER }}/${{ env.RELEASE_ASSET_NAME }}${{ env.RELEASE_ASSET_EXT }}
+          asset_name: ${{ env.RELEASE_ASSET_NAME }}${{ env.RELEASE_ASSET_EXT }}
+          asset_content_type: ${{ MEDIA_TYPE }}
