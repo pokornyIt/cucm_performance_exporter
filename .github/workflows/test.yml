@@ -54,7 +54,7 @@ jobs:
           echo BINARY_NAME=$(basename ${GITHUB_REPOSITORY}) >> $GITHUB_ENV
           echo GOOS=$(echo ${{ matrix.goos }}) >> $GITHUB_ENV
           echo GOARCH=$(echo ${{ matrix.goarch }}) >> $GITHUB_ENV
-          echo RELEASE_ASSET_NAME=$(echo ${BINARY_NAME}-${APP_VERSION}-${GOOS}-${GOARCH}${BINARY_EXT}) >> $GITHUB_ENV
+#          echo RELEASE_ASSET_NAME=$(echo ${BINARY_NAME}-${APP_VERSION}-${GOOS}-${GOARCH}${BINARY_EXT}) >> $GITHUB_ENV
           if [ ${GOOS} == 'windows' ]; then
             echo BINARY_EXT='.exe' >> $GITHUB_ENV
             echo RELEASE_ASSET_EXT='.zip' >> $GITHUB_ENV
@@ -64,6 +64,9 @@ jobs:
             echo RELEASE_ASSET_EXT='.tar.gz' >> $GITHUB_ENV
             echo MEDIA_TYPE='application/gzip' >> $GITHUB_ENV
           fi
+
+      - name: Set asser name
+        run: echo RELEASE_ASSET_NAME=$(echo ${{ env.BINARY_NAME }}-${{ env.APP_VERSION }}-${{ env.GOOS }}-${{ env.GOARCH }}) >> $GITHUB_ENV
 
       - name: Environment Printer
         uses: managedkaos/print-env@v1.0
