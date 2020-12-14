@@ -107,4 +107,4 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./${{ env.BUILD_ARTIFACTS_FOLDER }}/${{ env.RELEASE_ASSET_NAME }}${{ env.RELEASE_ASSET_EXT }}
           asset_name: ${{ env.RELEASE_ASSET_NAME }}${{ env.RELEASE_ASSET_EXT }}
-          asset_content_type: ${{ MEDIA_TYPE }}
+          asset_content_type: ${{ env.MEDIA_TYPE }}
