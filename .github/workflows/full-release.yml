@@ -1,0 +1,110 @@
+name: Full release workflow
+
+on:
+  push:
+    tags: 
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'TAG version'
+        default: 'v.0.5.1'
+        required: true
+
+jobs:
+  releases-matrix:
+    name: Release Matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [ linux, windows ]
+        goarch: [ amd64, arm64 ]
+        exclude:
+          # windows/arm64 seems useless
+          - goarch: arm64
+            goos: windows
+
+#  build:
+#    name: Release build from tag
+#    runs-on: ubuntu-latest
+  
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Set up GoLang
+        uses: actions/setup-go@v2.1.3
+        with:
+          go-version: ^1.15
+        id: go
+
+      - name: Get dependencies
+        run: |
+          go version
+          go get -v -t -d ./...
+
+      - name: Setup environment
+        run: |
+          echo APP_VERSION=$(basename ${GITHUB_REF}) >> $GITHUB_ENV
+          echo BUILD_TIME=$(date -u +"%Y%m%d-%H:%M:%S") >> $GITHUB_ENV
+          echo BUILD_USER=$(echo ${GITHUB_ACTOR}@${HOSTNAME}) >> $GITHUB_ENV
+          echo BUILD_ARTIFACTS_FOLDER=$(echo build-artifacts-$(date +%s)) >> $GITHUB_ENV
+          echo BINARY_NAME=$(echo basename ${GITHUB_REPOSITORY}) >> $GITHUB_ENV
+          echo GOOS=$(echo ${matrix.goos}) >> $GITHUB_ENV
+          echo GOARCH=$(echo ${matrix.goarch}) >> $GITHUB_ENV
+          echo RELEASE_ASSET_NAME=$(echo ${BINARY_NAME}-${APP_VERSION}-${GOOS}-${GOARCH}${BINARY_EXT}) >> $GITHUB_ENV
+          if [ ${GOOS} == 'windows']; then
+            echo BINARY_EXT='.exe' >> $GITHUB_ENV
+            echo RELEASE_ASSET_EXT='.zip' >> $GITHUB_ENV
+            echo MEDIA_TYPE='application/zip' >> $GITHUB_ENV
+          else
+            echo BINARY_EXT='' >> $GITHUB_ENV
+            echo RELEASE_ASSET_EXT='.tar.gz' >> $GITHUB_ENV
+            echo MEDIA_TYPE='application/gzip' >> $GITHUB_ENV
+          fi
+
+      - name: Environment Printer
+        uses: managedkaos/print-env@v1.0      
+
+      - name: Create directory
+        run: |
+          mkdir -p ${BUILD_ARTIFACTS_FOLDER}
+          cp -r LICENSE README.md config.yml ${{ env.BUILD_ARTIFACTS_FOLDER }}/
+
+      - name: Build
+        run: GOOS =${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o "${{ env.BUILD_ARTIFACTS_FOLDER }}/${{ BINARY_NAME }}${{ BINARY_EXT }}" -ldflags="-X 'main.Version=${{ env.APP_VERSION }}' -X 'main.BuildDate=${{ env.BUILD_TIME }}' -X 'main.Branch=${{ github.ref }}' -X 'main.Revision=${{ github.SHA }}' -X 'main.BuildUser=${{ env.BUILD_USER }}'" .
+
+      - name: List files in directory
+        run: ls -lha ${{ env.BUILD_ARTIFACTS_FOLDER }}/
+
+      - name: TAR/ZIP files
+        run: |
+          cd ${{ env.BUILD_ARTIFACTS_FOLDER }}/
+          if [ ${GOOS} == 'windows']; then
+            zip -vr ${{ env.RELEASE_ASSET_NAME }}.zip *
+          else
+            tar cvfz ${{ env.RELEASE_ASSET_NAME }}.tar.gz *
+          fi
+        id: create_tar
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: true
+
+      - name: Publish release 
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.BUILD_ARTIFACTS_FOLDER }}/cucm_performance_exporter.tar.gz
+          asset_name: cucm_performance_exporter.tar.gz
+          asset_content_type: application/gzip
