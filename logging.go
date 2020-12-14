@@ -126,8 +126,3 @@ func initLog() {
 		}).Info("application Initializing")
 	}
 }
-
-func VersionDetail() string {
-	return fmt.Sprintf("Version details\r\n\tApplication Name: %s\r\n\tRuntime Version: %s\r\n\tCPUs: %d\r\n\tArchitectire: %s\r\n\tBuild Time: %s\n\r\tCommit Hash: %s",
-		applicationName, runtime.Version(), runtime.NumCPU(), runtime.GOARCH, buildTime, commitHash)
-}

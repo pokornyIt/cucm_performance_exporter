@@ -28,7 +28,7 @@ func perfRequestCreate(requestId string, body string) (req *http.Request, err er
 		log.WithField("routine", "perfRequestCreate").Errorf("problem create request. Error: %s", err)
 		return nil, err
 	}
-	req.Header.Add("User-Agent", httpApplication)
+	req.Header.Add("User-Agent", httpApplicationName())
 	req.Header.Add("Content-Type", "text/xml")
 	req.Header.Add("Accept", "text/xml")
 	req.Header.Add("Cache-Control", "no-cache")

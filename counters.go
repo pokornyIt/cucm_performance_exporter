@@ -1,6 +1,6 @@
 package main
 
-type AllowedCounters struct {
+type Counters struct {
 	allowedCounterName string
 	prometheusName     string
 	defaultEnabled     bool
@@ -85,8 +85,8 @@ const (
 )
 
 var (
-	AllowedGroupNames   = []string{"Cisco CallManager", "Cisco Recording"}
-	AllowedCounterNames = []AllowedCounters{
+	AllowedGroupNames = []string{"Cisco CallManager", "Cisco Recording"}
+	SupportedCounters = []Counters{
 		{allowedCounterName: CallsActive, prometheusName: "cucm_calls_active", defaultEnabled: true},
 		{allowedCounterName: CallsInProgress, prometheusName: "cucm_calls_in_progress", defaultEnabled: true},
 		{allowedCounterName: CallsCompleted, prometheusName: "cucm_calls_completed", defaultEnabled: true},
@@ -99,12 +99,12 @@ var (
 	}
 )
 
-//func (a *AllowedCounters) inCounter(name string) bool {
+//func (a *Counters) inCounter(name string) bool {
 //	return name == a.allowedCounterName
 //}
 
 func isNameInAllowedCounter(name string) bool {
-	for _, v := range AllowedCounterNames {
+	for _, v := range SupportedCounters {
 		if v.allowedCounterName == name {
 			return true
 		}
@@ -113,7 +113,7 @@ func isNameInAllowedCounter(name string) bool {
 }
 
 //func getPrometheusName(name string) string {
-//	for _, v := range AllowedCounterNames {
+//	for _, v := range SupportedCounters {
 //		if v.allowedCounterName == name {
 //			return v.prometheusName
 //		}

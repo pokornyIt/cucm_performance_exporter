@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/version"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
@@ -23,51 +24,10 @@ func newWebServer(quit chan<- os.Signal) *http.Server {
 	toStopChannel = make(chan bool)
 	router := http.NewServeMux()
 
-	//r := prometheus.NewRegistry()
-	//callMetrics = make(map[string]*prometheus.GaugeVec)
-	//counterMetrics = make(map[string]*prometheus.CounterVec)
-	//counterActual = make(map[string]float64)
-
-	//var counter *counterDetails
-	//var err error
-
-	//for _, cnt := range AllowedCounterNames {
-	//	if !config.Metrics.enablePrometheusCounter(cnt.allowedCounterName) {
-	//		log.WithFields(log.Fields{"operation": "newWebServer", "metricsName": cnt.prometheusName}).Infof("metrics %s not enabled", cnt.allowedCounterName)
-	//		continue
-	//	}
-	//	counter, err = monitors.GetCounterDetails(cnt.allowedCounterName)
-	//	if err != nil {
-	//		log.WithFields(log.Fields{"operation": "newWebServer", "metricsName": cnt.prometheusName}).Errorf("not defined description for %s", cnt.allowedCounterName)
-	//	}
-	//	if counter == nil {
-	//		counter = &counterDetails{name: cnt.allowedCounterName, description: fmt.Sprintf("Description for %s not exists", cnt.allowedCounterName)}
-	//	}
-	//	if strings.HasSuffix(strings.ToLower(cnt.allowedCounterName), "failed") {
-	//		counterMetrics[cnt.allowedCounterName] = prometheus.NewCounterVec(
-	//			prometheus.CounterOpts{
-	//				Name: cnt.prometheusName,
-	//				Help: counter.description,
-	//			}, []string{"server"})
-	//		prometheus.MustRegister(counterMetrics[cnt.allowedCounterName])
-	//		counterActual[cnt.allowedCounterName] = float64(0)
-	//	} else {
-	//		callMetrics[cnt.allowedCounterName] = prometheus.NewGaugeVec(
-	//			prometheus.GaugeOpts{
-	//				Name: cnt.prometheusName,
-	//				Help: counter.description,
-	//			}, []string{"server"})
-	//		prometheus.MustRegister(callMetrics[cnt.allowedCounterName])
-	//		for _, srv := range monitors.monitors {
-	//			callMetrics[cnt.allowedCounterName].WithLabelValues(srv.server).Set(0)
-	//		}
-	//	}
-	//}
-
 	router.Handle("/version", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.WithFields(log.Fields{"metricsUri": "/version", "operation": "newWebServer"}).Debug("request /version")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(VersionDetail()))
+		_, _ = w.Write([]byte(version.Print(applicationName)))
 	}))
 	router.Handle("/err", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.WithFields(log.Fields{"metricsUri": "/err", "operation": "newWebServer"}).Debug("request /er")
@@ -112,7 +72,7 @@ func prometheusCreateMetrics() {
 	var counter *counterDetails
 	var err error
 
-	for _, cnt := range AllowedCounterNames {
+	for _, cnt := range SupportedCounters {
 		if !config.Metrics.enablePrometheusCounter(cnt.allowedCounterName) {
 			log.WithFields(log.Fields{"operation": "newWebServer", "metricsName": cnt.prometheusName}).Infof("metrics %s not enabled", cnt.allowedCounterName)
 			continue
@@ -148,7 +108,7 @@ func prometheusCreateMetrics() {
 
 func prometheusRemoveMetrics() {
 	log.WithFields(log.Fields{"operation": "prometheusCreateMetrics"}).Infof("prepare remove all metrics")
-	for _, cnt := range AllowedCounterNames {
+	for _, cnt := range SupportedCounters {
 		if strings.HasSuffix(strings.ToLower(cnt.allowedCounterName), "failed") {
 			prometheus.Unregister(counterMetrics[cnt.allowedCounterName])
 			counterActual[cnt.allowedCounterName] = float64(0)

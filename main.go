@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/prometheus/common/version"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"math/rand"
@@ -12,8 +13,7 @@ import (
 )
 
 const (
-	applicationName = "CUCM PerfMon Exporter 2020.12.08"                     // application name
-	httpApplication = "cucm-permon-exporter/2020.12.08"                      //  http user agent
+	applicationName = "cucm-perfmon-exporter"                                // application name
 	letterBytes     = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // map for random string
 	letterIdxBits   = 6                                                      // 6 bits to represent a letter index
 	letterIdxMask   = 1<<letterIdxBits - 1                                   // All 1-bits, as many as letterIdxBits
@@ -29,9 +29,17 @@ var (
 	help          bool           // show help?
 	toStopChannel chan bool      // used for setup stop
 	monitors      perfMonService // registered service
-	buildTime     string         // update in build
-	commitHash    string         // commit hash
+	Version       string         // for build data
+	Revision      string         // for build data
+	Branch        string         // for build data
+	BuildUser     string         // for build data
+	BuildDate     string         // for build data
+
 )
+
+func httpApplicationName() string {
+	return fmt.Sprintf("%s/%s", applicationName, version.Version)
+}
 
 func RandomString() string {
 	sb := strings.Builder{}
@@ -127,7 +135,29 @@ func monitoringProcess() {
 func main() {
 	timeStart := time.Now()
 	exitCode := 0
-	kingpin.Version(VersionDetail())
+	version.Branch = Branch
+	if len(Branch) == 0 {
+		version.Branch = "Undefined"
+	}
+	version.Revision = Revision
+	if len(Revision) == 0 {
+		version.Revision = "Undefined"
+	}
+	version.BuildUser = BuildUser
+	if len(BuildUser) == 0 {
+		version.BuildUser = "Undefined"
+	}
+	version.BuildDate = BuildDate
+	if len(BuildDate) == 0 {
+		t := time.Now()
+		version.BuildDate = t.Format("20060102-15:04:05")
+	}
+	version.Version = Version
+	if len(Version) == 0 {
+		version.Version = "Undefined"
+	}
+
+	kingpin.Version(version.Print(applicationName))
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
 	err := config.LoadFile(*configFile)

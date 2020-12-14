@@ -23,6 +23,8 @@ jobs:
         run: echo ::set-env name=APP_VERSION::$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev )
       - name: Set BUILD_TIME env
         run: echo ::set-env name=BUILD_TIME::$(date)
+      - name: Set BUILD_USER env
+        run: echo ::set-env name=BUILD_USER::$(echo ${GITHUB_ACTOR}@${HOSTNAME})
       - name: Environment Printer
         uses: managedkaos/print-env@v1.0
 
@@ -31,6 +33,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
+          extra_files: LICENSE README.md config.yml
           pre_command: go get -v ./...
           build_flags: -v
-          ldflags: -X "main.Version=${{ env.APP_VERSION }}" -X "main.BuildDate=${{ env.BUILD_TIME }}" -X main.Branch=${{ github.sha }} -X main.Revision=${{ github.ref }}
+          ldflags: -X "main.Version=${{ env.APP_VERSION }}" -X "main.BuildDate=${{ env.BUILD_TIME }}" -X "main.Branch=${{ github.ref }}" -X "main.Revision=${{ github.SHA }}" -X "main.BuildUser=${{ env.BUILD_USER }}"

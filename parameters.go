@@ -163,13 +163,13 @@ func (m *MetricsEnabled) Validate() bool {
 func (m *MetricsEnabled) Print() string {
 	a := "Metrics:\r\n"
 	lenTxt := 0
-	for _, name := range AllowedCounterNames {
+	for _, name := range SupportedCounters {
 		if len(name.allowedCounterName) > lenTxt {
 			lenTxt = len(name.allowedCounterName)
 		}
 	}
 	var reqSpaces int
-	for _, name := range AllowedCounterNames {
+	for _, name := range SupportedCounters {
 		reqSpaces = lenTxt - len(name.allowedCounterName)
 		a = fmt.Sprintf("%s\t- %s:%s [%t]\r\n", a, name.allowedCounterName, strings.Repeat(" ", reqSpaces), m.enablePrometheusCounter(name.allowedCounterName))
 	}
