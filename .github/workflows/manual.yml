@@ -1,6 +1,9 @@
 name: Manual workflow
 
 on:
+  push:
+    tags: 
+      - 'v*'
   workflow_dispatch:
     inputs:
       name:
@@ -31,14 +34,12 @@ jobs:
               dep ensure
           fi
 
-      - name: Set APP_VERSION env
-        run: echo APP_VERSION=$(basename ${GITHUB_REF}) >> $GITHUB_ENV
-      - name: Set BUILD_TIME env
-        run: echo BUILD_TIME=$(date -u +"%Y%m%d-%H:%M:%S") >> $GITHUB_ENV
-      - name: Set BUILD_USER env
-        run: echo BUILD_USER=$(echo ${GITHUB_ACTOR}@${HOSTNAME}) >> $GITHUB_ENV
-      - name: Process directory
-        run: echo BUILD_ARTIFACTS_FOLDER=$(echo build-artifacts-$(date +%s)) >> $GITHUB_ENV
+      - name: Setup environment
+        run: |
+          echo APP_VERSION=$(basename ${GITHUB_REF}) >> $GITHUB_ENV
+          echo BUILD_TIME=$(date -u +"%Y%m%d-%H:%M:%S") >> $GITHUB_ENV
+          echo BUILD_USER=$(echo ${GITHUB_ACTOR}@${HOSTNAME}) >> $GITHUB_ENV
+          echo BUILD_ARTIFACTS_FOLDER=$(echo build-artifacts-$(date +%s)) >> $GITHUB_ENV
 
       - name: Environment Printer
         uses: managedkaos/print-env@v1.0      
@@ -62,15 +63,26 @@ jobs:
         
       - name: TAR files
         run: cd ${{ env.BUILD_ARTIFACTS_FOLDER }}/; tar cvfz cucm_performance_exporter.tar.gz *
+        id: create_tar
+
+      - name: Create Release
         id: create_release
-        
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: true
+
       - name: Publish release 
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: https://github.com/pokornyIt/cucm_performance_exporter/releases/tag/v0.5.1
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./${{ env.BUILD_ARTIFACTS_FOLDER }}/cucm_performance_exporter.tar.gz
           asset_name: cucm_performance_exporter.tar.gz
           asset_content_type: application/gzip
