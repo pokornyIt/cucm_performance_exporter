@@ -38,6 +38,7 @@ jobs:
           build_flags: -v
           ldflags: -X main.Version="${{ env.APP_VERSION }}" -X main.BuildDate="${{ env.BUILD_TIME }}" -X main.Branch="${{ github.ref }}" -X main.Revision="${{ github.SHA }}" -X main.BuildUser="${{ env.BUILD_USER }}"
           extra_files: LICENSE README.md config.yml
+          overwrite: true
 
       - name: Show Data
         run: ./cucm_performance_exporter --version
