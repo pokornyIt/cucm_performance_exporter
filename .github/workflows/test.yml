@@ -32,8 +32,14 @@ jobs:
               curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
               dep ensure
           fi
+
+      - name: Set APP_VERSION env
+        run: echo ::set-env name=APP_VERSION::$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev )
+      - name: Set BUILD_TIME env
+        run: echo ::set-env name=BUILD_TIME::$(date)
+
       - name: Build
-        run: go build -v -ldflags="-X 'main.Version=0.0.1' -X 'main.Branch=$(git rev-parse --short HEAD)' -X 'main.BuildDate=$(date -Is)' -X main.BuildUser='$(id -u -n)'" .
+        run: go build -v -ldflags="-X 'main.Version=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev )' -X 'main.Branch=$(git rev-parse --short HEAD)' -X 'main.BuildDate=$(date -Is)' -X main.BuildUser='$(id -u -n)'" .
 
       - name: Test
         run: go test -v .

@@ -31,6 +31,15 @@ apiAddress: publisher.name
 apiUser: api_allowed_user
 apiPwd: password
 ignoreCertificate: true
+log:
+  level: info
+  fileName: ''
+  jsonFormat: false
+  logProgramInfo: false
+  maxSize: 50
+  maxBackups: 5
+  maxAge: 30
+  quiet: false
 ```
 
 - **monitor_names** - name of CUCM servers, use same names as in system CUCM configuration
@@ -40,6 +49,7 @@ ignoreCertificate: true
 - **apiUser** - user with rights to read performance metrics
 - **apiPwd** - password for apiUser
 - **ignoreCertificate** - system ignore certificate validity
+- **log** - setup logging from system
 
 ## Actual supported metrics
 
@@ -49,7 +59,23 @@ ignoreCertificate: true
   CallManager, including all active calls.
 - **callsCompleted** - This represents the number of calls that were actually connected (a voice path or video stream
   was established) through this CallManager.
-- **partiallyRegisteredPhone** -
+- **partiallyRegisteredPhone** - This represents the number of partially registered SIP Phones.
+- **registeredHardwarePhones** - This represents the number of Cisco hardware IP phones (for example, models 7960, 7940, 7910, etc.) that are currently registered in the system.
+- **gatewaysSessionsActive** - This is a real-time counter which specifies the total number of active recording sessions between a recording-enabled gateway and a recording server.
+- **gatewaysSessionsFailed** - This is a cumulative counter which specifies the total number of gateway-preferred recording sessions which failed since the last restart of the Cisco Unified Communications Manager service.
+- **phoneSessionsActive** - This is a real-time counter which specifies the total number of active recording sessions between a Cisco IP Phone and a recording server.
+- **phoneSessionsFailed** - This is a cumulative counter which specifies the total number of phone-preferred recording sessions which failed since the last restart of the Cisco Unified Communications Manager service.
+
+## Log setup
+
+- **level** - Logging level, default Info, valid: Fatal, Error, Warning, Info, Debug, Trace
+- **fileName** - File name for actual log file, empty doesn't log to file
+- **jsonFormat** - Use JSON formatting, default false, valid: false, true
+- **logProgramInfo** - Include in log line and source file from source program
+- **maxSize** - maximal size of one log file in MB, default 50 MB, minimal1 MB, max 5 000 MB
+- **maxBackups** - maximal backup log files, default 5, minimal 0 file, max 100 files
+- **maxAge** - maximal log file age in day, default 30, minimal 1 day, maximal 365 days
+- **quiet** - don't log any message to std output, default false, valid: false, true
 
 # Start parameters
 
