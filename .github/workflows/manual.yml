@@ -72,5 +72,5 @@ jobs:
         with:
           upload_url: https://github.com/pokornyIt/cucm_performance_exporter/releases/tag/v0.5.1
           asset_path: ./${{ env.BUILD_ARTIFACTS_FOLDER }}/cucm_performance_exporter.tar.gz
-          assert_name: cucm_performance_exporter.tar.gz
-          assert_content_type: application/gzip
+          asset_name: cucm_performance_exporter.tar.gz
+          asset_content_type: application/gzip
