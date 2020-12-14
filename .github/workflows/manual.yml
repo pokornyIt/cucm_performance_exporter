@@ -61,7 +61,7 @@ jobs:
         run: ls -lha ${{ env.BUILD_ARTIFACTS_FOLDER }}/
         
       - name: TAR files
-        run: tar cvfz cucm_performance_exporter.tar.gz *
+        run: cd ${{ env.BUILD_ARTIFACTS_FOLDER }}/; tar cvfz cucm_performance_exporter.tar.gz *
         id: create_release
         
       - name: Publish release 
