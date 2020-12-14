@@ -22,7 +22,7 @@ jobs:
       - name: Set APP_VERSION env
         run: echo APP_VERSION=$(basename ${GITHUB_REF}) >> $GITHUB_ENV
       - name: Set BUILD_TIME env
-        run: echo BUILD_TIME=$(echo date -u +"%Y%m%d-%H:%M:%S") >> $GITHUB_ENV
+        run: echo BUILD_TIME=$(date -u +"%Y%m%d-%H:%M:%S") >> $GITHUB_ENV
       - name: Set BUILD_USER env
         run: echo BUILD_USER=$(echo ${GITHUB_ACTOR}@${HOSTNAME}) >> $GITHUB_ENV
 
