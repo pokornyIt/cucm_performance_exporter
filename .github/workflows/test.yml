@@ -10,10 +10,22 @@ on:
     branches: [ master ]
 
 jobs:
-
-  build:
-    name: Test-Build
+  releases-matrix:
+    name: Release Matrix
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [ linux ]
+        goarch: [ amd64 ]
+        exclude:
+          # windows/arm64 seems useless
+          - goarch: arm64
+            goos: windows
+
+#  build:
+#    name: Test-Build
+#    runs-on: ubuntu-latest
+
     steps:
 
       - name: Set up Go 1.x
@@ -64,3 +76,29 @@ jobs:
 
       - name: Show Data
         run: ./cucm_performance_exporter --version
+
+      - name: Create directory
+        run: |
+          mkdir -p ${BUILD_ARTIFACTS_FOLDER}
+          cp -r LICENSE README.md config.yml ${{ env.BUILD_ARTIFACTS_FOLDER }}/
+
+      - name: Build
+        run: go build -v -o "${{ env.BUILD_ARTIFACTS_FOLDER }}/${{ env.BINARY_NAME }}${{ env.BINARY_EXT }}" -ldflags="-X 'main.Version=${{ env.APP_VERSION }}' -X 'main.BuildDate=${{ env.BUILD_TIME }}' -X 'main.Branch=${{ github.ref }}' -X 'main.Revision=${{ github.SHA }}' -X 'main.BuildUser=${{ env.BUILD_USER }}'" .
+
+      - name: List files in directory
+        run: ls -lha ${{ env.BUILD_ARTIFACTS_FOLDER }}/
+
+      - name: TAR/ZIP files
+        run: |
+          cd ${{ env.BUILD_ARTIFACTS_FOLDER }}/
+          if [ ${GOOS} == 'windows']; then
+            zip -vr ${{ env.RELEASE_ASSET_NAME }}${{ env.RELEASE_ASSET_EXT }} *
+          else
+            tar cvfz ${{ env.RELEASE_ASSET_NAME }}${{ env.RELEASE_ASSET_EXT }} *
+          fi
+        id: create_tar
+
+      - name: List files in directory
+        run: |
+          ls -lha ${{ env.BUILD_ARTIFACTS_FOLDER }}/
+          ls -lha .
