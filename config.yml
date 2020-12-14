@@ -1,0 +1,25 @@
+monitor_names: ['publisher.name','subscriber01.name']
+metrics:
+  callsActive: true
+  callsInProgress: true
+  callsCompleted: true
+  partiallyRegisteredPhone: true
+  registeredHardwarePhones: true
+  gatewaysSessionsActive: true
+  gatewaysSessionsFailed: true
+  phoneSessionsActive: true
+  phoneSessionsFailed: true
+port: 9719
+apiAddress: publisher.name
+apiUser: api_allowed_user
+apiPwd: password
+ignoreCertificate: true
+log:
+  level: info
+  fileName: ''
+  jsonFormat: false
+  logProgramInfo: false
+  maxSize: 50
+  maxBackups: 5
+  maxAge: 30
+  quiet: false
