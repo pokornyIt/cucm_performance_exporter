@@ -36,7 +36,7 @@ jobs:
       - name: Set APP_VERSION env
         run: echo APP_VERSION=$(basename ${GITHUB_REF}) >> $GITHUB_ENV
       - name: Set BUILD_TIME env
-        run: echo BUILD_TIME=$(echo date -u +"%Y%m%d-%H:%M:%S") >> $GITHUB_ENV
+        run: echo BUILD_TIME=$(date -u +"%Y%m%d-%H:%M:%S") >> $GITHUB_ENV
       - name: Set BUILD_USER env
         run: echo BUILD_USER=$(echo ${GITHUB_ACTOR}@${HOSTNAME}) >> $GITHUB_ENV
 
@@ -44,7 +44,7 @@ jobs:
         uses: managedkaos/print-env@v1.0
 
       - name: Build
-        run: go build -v -ldflags="-X 'main.Version=${{ env.APP_VERSION }}' -X 'main.BuildDate="${{ env.BUILD_TIME }}"' -X 'main.Branch=${{ github.ref }}' -X 'main.Revision=${{ github.SHA }}' -X 'main.BuildUser=${{ env.BUILD_USER }}'" .
+        run: go build -v -ldflags="-X 'main.Version=${{ env.APP_VERSION }}' -X 'main.BuildDate=${{ env.BUILD_TIME }}' -X 'main.Branch=${{ github.ref }}' -X 'main.Revision=${{ github.SHA }}' -X 'main.BuildUser=${{ env.BUILD_USER }}'" .
 
       - name: Test
         run: go test -v .
