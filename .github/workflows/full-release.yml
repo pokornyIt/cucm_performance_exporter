@@ -66,7 +66,7 @@ jobs:
           echo BINARY_NAME=$(basename ${GITHUB_REPOSITORY}) >> $GITHUB_ENV
           echo GOOS=$(echo ${{ matrix.goos }}) >> $GITHUB_ENV
           echo GOARCH=$(echo ${{ matrix.goarch }}) >> $GITHUB_ENV
-          if [ ${GOOS} == 'windows' ]; then
+          if [ ${{ matrix.goos }} == 'windows' ]; then
             echo BINARY_EXT='.exe' >> $GITHUB_ENV
             echo RELEASE_ASSET_EXT='.zip' >> $GITHUB_ENV
             echo MEDIA_TYPE='application/zip' >> $GITHUB_ENV
@@ -97,10 +97,12 @@ jobs:
         run: |
           cd ${{ env.BUILD_ARTIFACTS_FOLDER }}
 
-          if [ ${GOOS} == 'windows' ]; then
+          if [ ${{ env.GOOS }} == 'windows' ]; then
             zip -vr ${{ env.RELEASE_ASSET_NAME }}${{ env.RELEASE_ASSET_EXT }} *
+            echo 'Windows'
           else
             tar cvfz ${{ env.RELEASE_ASSET_NAME }}${{ env.RELEASE_ASSET_EXT }} *
+            echo 'Linux'
           fi
         id: create_tar
 
