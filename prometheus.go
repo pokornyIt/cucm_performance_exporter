@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
 	log "github.com/sirupsen/logrus"
@@ -71,6 +72,12 @@ func prometheusCreateMetrics() {
 
 	var counter *counterDetails
 	var err error
+	if !config.Metrics.GoCollector {
+		prometheus.Unregister(collectors.NewGoCollector())
+	}
+	if !config.Metrics.ProcessStatus {
+		prometheus.Unregister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+	}
 
 	for _, cnt := range SupportedCounters {
 		if !config.Metrics.enablePrometheusCounter(cnt.allowedCounterName) {

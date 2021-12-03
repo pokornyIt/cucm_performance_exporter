@@ -1,4 +1,4 @@
-monitor_names: ['publisher.name','subscriber01.name']
+monitor_names: [ 'publisher.name','subscriber01.name' ]
 metrics:
   callsActive: true
   callsInProgress: true
@@ -9,6 +9,8 @@ metrics:
   gatewaysSessionsFailed: true
   phoneSessionsActive: true
   phoneSessionsFailed: true
+  goCollector: true
+  processStatus: true
 port: 9719
 apiAddress: publisher.name
 apiUser: api_allowed_user
