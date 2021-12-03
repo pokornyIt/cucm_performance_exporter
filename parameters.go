@@ -35,6 +35,8 @@ type MetricsEnabled struct {
 	GatewaysSessionsFailed   bool `yaml:"gatewaysSessionsFailed" json:"gatewaysSessionsFailed"`
 	PhoneSessionsActive      bool `yaml:"phoneSessionsActive" json:"phoneSessionsActive"`
 	PhoneSessionsFailed      bool `yaml:"phoneSessionsFailed" json:"phoneSessionsFailed"`
+	GoCollector              bool `yaml:"goCollector" json:"goCollector"`
+	ProcessStatus            bool `yaml:"processStatus" json:"processStatus"`
 }
 
 type ConfigLog struct {
@@ -74,6 +76,8 @@ var (
 			GatewaysSessionsFailed:   true,
 			PhoneSessionsActive:      true,
 			PhoneSessionsFailed:      true,
+			GoCollector:              true,
+			ProcessStatus:            true,
 		},
 		Log: ConfigLog{
 			Level:          "Info",
@@ -98,6 +102,7 @@ var (
 	logFile   = kingpin.Flag("log.file", "Path and file name for store log. Default is disabled.").PlaceHolder("file.log").Default("").String()
 )
 
+// LoadFile Load configuration file form filename
 func (c *Config) LoadFile(filename string) (err error) {
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -106,9 +111,7 @@ func (c *Config) LoadFile(filename string) (err error) {
 	return c.ProcessLoadFile(content)
 }
 
-/*
-Process config content
-*/
+// ProcessLoadFile Process config content/*
 func (c *Config) ProcessLoadFile(content []byte) (err error) {
 	err = yaml.UnmarshalStrict(content, c)
 	if err != nil {
@@ -162,7 +165,8 @@ func (m *MetricsEnabled) Validate() bool {
 
 func (m *MetricsEnabled) Print() string {
 	a := "Metrics:\r\n"
-	lenTxt := 0
+	lenTxt := len("ProcessStatus")
+	const fmtFormat = "%s\t- %s:%s [%t]\r\n"
 	for _, name := range SupportedCounters {
 		if len(name.allowedCounterName) > lenTxt {
 			lenTxt = len(name.allowedCounterName)
@@ -171,17 +175,22 @@ func (m *MetricsEnabled) Print() string {
 	var reqSpaces int
 	for _, name := range SupportedCounters {
 		reqSpaces = lenTxt - len(name.allowedCounterName)
-		a = fmt.Sprintf("%s\t- %s:%s [%t]\r\n", a, name.allowedCounterName, strings.Repeat(" ", reqSpaces), m.enablePrometheusCounter(name.allowedCounterName))
+		a = fmt.Sprintf(fmtFormat, a, name.allowedCounterName, strings.Repeat(" ", reqSpaces), m.enablePrometheusCounter(name.allowedCounterName))
 	}
+	reqSpaces = lenTxt - len("GoCollector")
+	a = fmt.Sprintf(fmtFormat, a, "GoCollector", strings.Repeat(" ", reqSpaces), m.GoCollector)
+	reqSpaces = lenTxt - len("ProcessStatus")
+	a = fmt.Sprintf(fmtFormat, a, "ProcessStatus", strings.Repeat(" ", reqSpaces), m.ProcessStatus)
+
 	return a
 }
 
 func (c *Config) print() string {
-	a := fmt.Sprintf("API:               [https://%s:8443/perfmonservice2/services/PerfmonService?wsdl]\r\n", c.ApiAddress)
-	a = fmt.Sprintf("%sIgnoreCertificate: [%t]\r\n", a, c.IgnoreCertificate)
-	a = fmt.Sprintf("%sUser:              [%s]\r\n", a, c.ApiUser)
-	a = fmt.Sprintf("%sServers:           [%s]\r\n", a, strings.Join(c.MonitorNames, ", "))
-	a = fmt.Sprintf("%sPort:              [:%d]\r\n", a, c.Port)
+	a := fmt.Sprintf("API:                  [https://%s:8443/perfmonservice2/services/PerfmonService?wsdl]\r\n", c.ApiAddress)
+	a = fmt.Sprintf("%sIgnore Certificate:   [%t]\r\n", a, c.IgnoreCertificate)
+	a = fmt.Sprintf("%sUser:                 [%s]\r\n", a, c.ApiUser)
+	a = fmt.Sprintf("%sServers:              [%s]\r\n", a, strings.Join(c.MonitorNames, ", "))
+	a = fmt.Sprintf("%sPort:                 [:%d]\r\n", a, c.Port)
 
 	a = fmt.Sprintf("%s%s", a, c.Metrics.Print())
 	a = fmt.Sprintf("%s%s", a, c.Log.Print())
@@ -299,14 +308,6 @@ func FixFileName(file string) string {
 	dir = path.Clean(dir)
 	file1 = path.Join(dir, file1)
 	return strings.ReplaceAll(file1, "/", string(os.PathSeparator))
-}
-
-func FileExists(filename string) bool {
-	info, err := os.Stat(filename)
-	if err != nil || info == nil {
-		return false
-	}
-	return !info.IsDir()
 }
 
 func validServer(srv string) bool {

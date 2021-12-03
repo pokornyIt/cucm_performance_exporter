@@ -26,6 +26,8 @@ metrics:
   gatewaysSessionsFailed: true
   phoneSessionsActive: true
   phoneSessionsFailed: true
+  goCollector: true
+  processStatus: true
 port: 9719
 apiAddress: publisher.name
 apiUser: api_allowed_user
@@ -60,11 +62,21 @@ log:
 - **callsCompleted** - This represents the number of calls that were actually connected (a voice path or video stream
   was established) through this CallManager.
 - **partiallyRegisteredPhone** - This represents the number of partially registered SIP Phones.
-- **registeredHardwarePhones** - This represents the number of Cisco hardware IP phones (for example, models 7960, 7940, 7910, etc.) that are currently registered in the system.
-- **gatewaysSessionsActive** - This is a real-time counter which specifies the total number of active recording sessions between a recording-enabled gateway and a recording server.
-- **gatewaysSessionsFailed** - This is a cumulative counter which specifies the total number of gateway-preferred recording sessions which failed since the last restart of the Cisco Unified Communications Manager service.
-- **phoneSessionsActive** - This is a real-time counter which specifies the total number of active recording sessions between a Cisco IP Phone and a recording server.
-- **phoneSessionsFailed** - This is a cumulative counter which specifies the total number of phone-preferred recording sessions which failed since the last restart of the Cisco Unified Communications Manager service.
+- **registeredHardwarePhones** - This represents the number of Cisco hardware IP phones (for example, models 7960, 7940,
+  7910, etc.) that are currently registered in the system.
+- **gatewaysSessionsActive** - This is a real-time counter which specifies the total number of active recording sessions
+  between a recording-enabled gateway and a recording server.
+- **gatewaysSessionsFailed** - This is a cumulative counter which specifies the total number of gateway-preferred
+  recording sessions which failed since the last restart of the Cisco Unified Communications Manager service.
+- **phoneSessionsActive** - This is a real-time counter which specifies the total number of active recording sessions
+  between a Cisco IP Phone and a recording server.
+- **phoneSessionsFailed** - This is a cumulative counter which specifies the total number of phone-preferred recording
+  sessions which failed since the last restart of the Cisco Unified Communications Manager service.
+
+Program allow enabling/disabling standard GO client metrics. Detail about this metrics are described in [Exploring Prometheus GO client Metrics](https://povilasv.me/prometheus-go-metrics/#).
+
+- **goCollector** - enable/disable internal program GO metrics
+- **processStatus** - enable/disable internal program status metrics
 
 ## Log setup
 
@@ -83,7 +95,8 @@ Program support CLI parameters. All parameters are optional and overwrite same c
 
 - **--version** - show actual program version
 - **--config.show** - show actual configuration and ends
-- **--config.file file_name** - start program with configuration file file_name, when omitted system use name "server.yml" in current directory
+- **--config.file file_name** - start program with configuration file file_name, when omitted system use name "
+  server.yml" in current directory
 - **--api.address fqdn_or_ip** - overwrite value `apiAddress` from configuration file with fqdn_or_ip
 - **--api.user user_name** - overwrite value `apiUser` from configuration file with user_name
 - **--api.pwd user_pwd** - overwrite value `apiPwd` from configuration file with user_pwd
