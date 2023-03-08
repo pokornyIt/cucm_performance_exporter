@@ -51,8 +51,13 @@ func perfRequestResponse(requestId string, client *http.Client, req *http.Reques
 	requestsCount := rateRequest.requests
 	waitTime := rateRequest.delay()
 	if waitTime > time.Millisecond {
-		log.WithFields(log.Fields{FieldRoutine: "perfRequestResponse", FieldRequestId: requestId}).
-			Warnf("wait after %d requests for %s", requestsCount, waitTime.String())
+		if waitTime > RateStandardDelay {
+			log.WithFields(log.Fields{FieldRoutine: "perfRequestResponse", FieldRequestId: requestId}).
+				Warnf("wait after %d requests for %s", requestsCount, waitTime.String())
+		} else {
+			log.WithFields(log.Fields{FieldRoutine: "perfRequestResponse", FieldRequestId: requestId}).
+				Debugf("wait after %d requests for %s", requestsCount, waitTime.String())
+		}
 		time.Sleep(waitTime)
 	}
 	resp, err = client.Do(req)
