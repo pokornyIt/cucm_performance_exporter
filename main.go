@@ -20,7 +20,6 @@ const (
 	letterIdxMask        = 1<<letterIdxBits - 1                                   // All 1-bits, as many as letterIdxBits
 	letterIdxMax         = 63 / letterIdxBits                                     // # of letter indices fitting in 63 bits
 	maxRandomSize        = 10                                                     // required size of random string
-	TimeFormat           = "15:04:05.0000"                                        // time format
 	sleepBetweenSessions = 10                                                     // sleep second between open new session or reconnect to server
 )
 
@@ -61,9 +60,10 @@ func RandomString() string {
 }
 
 func monitoringOpenSession() (ret bool, err error) {
-	log.WithFields(log.Fields{"operation": "monitoringOpenSession"}).Trace("try open new monitor session")
+	log.WithFields(log.Fields{Routine: "monitoringOpenSession"}).Trace("try open new monitor session")
+	defer duration(track(log.Fields{Routine: "monitoringOpenSession"}, "procedure ends"))
 	if err = monitors.OpenSession(); err != nil {
-		log.WithFields(log.Fields{"operation": "monitoringOpenSession"}).Error("problem open monitor session to target server")
+		log.WithFields(log.Fields{Routine: "monitoringOpenSession"}).Error("problem open monitor session to target server")
 		return true, err
 	}
 	monitors.AddCounters()
@@ -71,14 +71,24 @@ func monitoringOpenSession() (ret bool, err error) {
 	return false, nil
 }
 
+func track(fields log.Fields, msg string) (log.Fields, string, time.Time) {
+	return fields, msg, time.Now()
+}
+func duration(fields log.Fields, msg string, timeStart time.Time) {
+	timeEnd := time.Now()
+	// TODO: change to trace
+	log.WithFields(fields).WithField("duration", timeEnd.Sub(timeStart).Round(time.Millisecond).String()).Error(msg)
+}
+
 func monitoringProcess() {
+	defer duration(track(log.Fields{Routine: "monitoringProcess"}, "procedure ends"))
 	done := make(chan bool, 1)
 	quit := make(chan os.Signal, 1)
 
 	signal.Notify(quit, os.Interrupt)
 
-	log.WithFields(log.Fields{"operation": "monitoringProcess"}).Debug("start with configuration")
-	log.WithFields(log.Fields{"operation": "monitoringProcess"}).Trace("read performance counters and description")
+	log.WithFields(log.Fields{Routine: "monitoringProcess"}).Debug("start with configuration")
+	log.WithFields(log.Fields{Routine: "monitoringProcess"}).Trace("read performance counters and description")
 	monitors = *NewPerfMonServers()
 	_ = monitors.ListAllCounters()
 
@@ -87,7 +97,7 @@ func monitoringProcess() {
 	go runHttpServer(srv, done)
 
 	if toStopChannel == nil {
-		log.WithFields(log.Fields{"operation": "monitoringProcess"}).Fatal("problem start http listener")
+		log.WithFields(log.Fields{Routine: "monitoringProcess"}).Fatal("problem start http listener")
 		return
 	}
 
@@ -99,14 +109,14 @@ func monitoringProcess() {
 	// processing cycle
 	for {
 		if requiredStop {
-			log.WithFields(log.Fields{"operation": "monitoringProcess"}).Debug("close existing open routines")
+			log.WithFields(log.Fields{Routine: "monitoringProcess"}).Debug("close existing open routines")
 			monitors.CloseSession()
 			<-done
 			break
 		}
 		if !requiredStop {
 			if !monitors.ExistSession() {
-				log.WithFields(log.Fields{"operation": "monitoringProcess"}).Infof("session is closed wait %ds and try open new one", sleepBetweenSessions)
+				log.WithFields(log.Fields{Routine: "monitoringProcess"}).Infof("session is closed wait %ds and try open new one", sleepBetweenSessions)
 				time.Sleep(time.Second * sleepBetweenSessions)
 				_, err = monitoringOpenSession()
 			}
@@ -114,26 +124,26 @@ func monitoringProcess() {
 				err = monitors.CollectSessionData()
 			}
 			if err != nil {
-				log.WithFields(log.Fields{"operation": "monitoringProcess"}).Info("problem read data close session")
+				log.WithFields(log.Fields{Routine: "monitoringProcess"}).Info("problem read data close session")
 				monitors.CloseSession()
 			} else {
-				log.WithFields(log.Fields{"operation": "monitoringProcess"}).Trace("collect one data")
+				log.WithFields(log.Fields{Routine: "monitoringProcess"}).Trace("collect one data")
 			}
 			select {
 			case <-toStopChannel:
 				requiredStop = true
-				log.WithFields(log.Fields{"operation": "monitoringProcess"}).Trace("request stop channel for monitoring")
+				log.WithFields(log.Fields{Routine: "monitoringProcess"}).Trace("request stop channel for monitoring")
 				break
 			case <-time.After(time.Second * 5):
 				break
 			}
 		}
 	}
-	log.WithFields(log.Fields{"operation": "monitoringProcess"}).Debug("procedure ends")
+	log.WithFields(log.Fields{Routine: "monitoringProcess"}).Debug("procedure ends")
 }
 
 func main() {
-	timeStart := time.Now()
+	defer duration(track(log.Fields{Routine: "main"}, "program ends"))
 	exitCode := 0
 	version.Branch = Branch
 	if len(Branch) == 0 {
@@ -176,8 +186,6 @@ func main() {
 		exitCode = 1
 	}
 
-	timeEnd := time.Now()
-	log.WithFields(log.Fields{"duration": timeEnd.Sub(timeStart).String()}).Infof("program end at %s", time.Now().Format(TimeFormat))
 	time.Sleep(time.Second * 2)
 	os.Exit(exitCode)
 }

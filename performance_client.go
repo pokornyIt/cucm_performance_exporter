@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"time"
 )
 
 type PerfClient struct {
@@ -42,15 +44,20 @@ func NewPerfClient() *PerfClient {
 }
 
 func (p *PerfClient) processRequest(name string, inner string) (body string, err error) {
+	var req *http.Request
+	var resp *http.Response
 	s := fmt.Sprintf(Envelope, inner)
 	requestId := RandomString()
-	req, err := perfRequestCreate(requestId, s)
+	req, err = perfRequestCreate(requestId, s)
 	p.requests++
 	if err != nil {
 		log.WithFields(p.logFields(name)).Errorf("problem prepare %s request. Error: %s", name, err)
 		return "", err
 	}
-	body, resp, err := perfRequestResponse(requestId, p.client, req)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(config.ApiTimeout)*time.Second)
+	defer cancel()
+	req = req.WithContext(ctx)
+	body, resp, err = perfRequestResponse(requestId, p.client, req)
 	if resp != nil && resp.StatusCode > 299 {
 		log.WithFields(p.logFields(name)).Errorf("problem read %s response. Status code: %s", name, resp.Status)
 		p.responseErrors++
@@ -79,8 +86,8 @@ func (p *PerfClient) logFields(operation ...string) log.Fields {
 	var f log.Fields
 	if len(operation) == 1 {
 		f = log.Fields{
-			"session":   p.session,
-			"operation": operation,
+			"session": p.session,
+			Routine:   operation,
 		}
 	} else {
 		f = log.Fields{

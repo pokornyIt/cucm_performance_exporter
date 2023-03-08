@@ -32,7 +32,9 @@ port: 9719
 apiAddress: publisher.name
 apiUser: api_allowed_user
 apiPwd: password
+apiTimeout: 5
 ignoreCertificate: true
+allowStop: false
 log:
   level: info
   fileName: ''
@@ -50,7 +52,9 @@ log:
 - **apiAddress** - FQDN or IP address of publisher server
 - **apiUser** - user with rights to read performance metrics
 - **apiPwd** - password for apiUser
+- **apiTimeout** - API request timeout in second between 1 and 30 sec, default is 5
 - **ignoreCertificate** - system ignore certificate validity
+- **allowStop** - allow stopping the program from web UI
 - **log** - setup logging from system
 
 ## Actual supported metrics

@@ -33,12 +33,12 @@ func (s *SessionData) processData() {
 			if strings.HasSuffix(strings.ToLower(counter), "failed") {
 				newVal := data.Value - counterActual[counter]
 				if newVal < 0 {
-					//log.WithFields(log.Fields{"operation": "processData", "metricsName": counter, "counter": counterActual[counter], "counter new": data.Value}).
+					//log.WithFields(log.Fields{Routine: "processData", MetricsName: counter, "counter": counterActual[counter], "counter new": data.Value}).
 					//	Infof("reset metrics for counter %s, because difference is %f", counter, newVal)
 					//var counterDetail *CounterDetails
 					//counterDetail, err = monitors.GetCounterDetails(counter)
 					//if err != nil {
-					//	log.WithFields(log.Fields{"operation": "processData", "metricsName": counter}).Errorf("not defined description for %s", counter)
+					//	log.WithFields(log.Fields{Routine: "processData", MetricsName: counter}).Errorf("not defined description for %s", counter)
 					//	continue
 					//}
 					//prometheus.Unregister(counterMetrics[counter])
@@ -65,7 +65,7 @@ func (o *OneCollectData) splitName() (server string, group string, counter strin
 	v := strings.Trim(o.Name, "\\")
 	subst := strings.Split(v, "\\")
 	if len(subst) != 3 {
-		log.WithFields(log.Fields{"operation": "splitName", "name": o.Name}).Error("problem split counter name")
+		log.WithFields(log.Fields{Routine: "splitName", "name": o.Name}).Error("problem split counter name")
 		return "", "", "", errors.New("problem split name")
 	}
 	return subst[0], subst[1], subst[2], nil

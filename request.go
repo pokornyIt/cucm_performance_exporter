@@ -20,12 +20,13 @@ type FaultResponse struct {
 }
 
 func perfRequestCreate(requestId string, body string) (req *http.Request, err error) {
-	log.WithFields(log.Fields{"routine": "perfRequestCreate", "requestId": requestId}).Trace("prepare request")
+	defer duration(track(log.Fields{Routine: "perfRequestCreate"}, "procedure ends"))
+	log.WithFields(log.Fields{Routine: "perfRequestCreate", RequestId: requestId}).Trace("prepare request")
 	server := fmt.Sprintf("https://%s:8443/perfmonservice2/services/PerfmonService?wsdl", config.ApiAddress)
-	log.WithFields(log.Fields{"routine": "perfRequestCreate", "requestId": requestId}).Tracef("prepare server API name: %s", server)
+	log.WithFields(log.Fields{Routine: "perfRequestCreate", RequestId: requestId}).Tracef("prepare server API name: %s", server)
 	req, err = http.NewRequest("POST", server, bytes.NewBuffer([]byte(body)))
 	if err != nil {
-		log.WithField("routine", "perfRequestCreate").Errorf("problem create request. Error: %s", err)
+		log.WithField(Routine, "perfRequestCreate").Errorf("problem create request. Error: %s", err)
 		return nil, err
 	}
 	req.Header.Add("User-Agent", httpApplicationName())
@@ -38,10 +39,10 @@ func perfRequestCreate(requestId string, body string) (req *http.Request, err er
 }
 
 func perfRequestResponse(requestId string, client *http.Client, req *http.Request) (body string, resp *http.Response, err error) {
-	log.WithFields(log.Fields{"routine": "perfRequestResponse", "requestId": requestId}).Trace("get response")
+	log.WithFields(log.Fields{Routine: "perfRequestResponse", RequestId: requestId}).Trace("get response")
 	resp, err = client.Do(req)
 	if err != nil {
-		log.WithFields(log.Fields{"routine": "perfRequestResponse", "requestId": requestId}).Errorf("problem process request. Error: %s", err)
+		log.WithFields(log.Fields{Routine: "perfRequestResponse", RequestId: requestId}).Errorf("problem process request. Error: %s", err)
 		return "", resp, err
 	}
 	s, err := io.ReadAll(resp.Body)

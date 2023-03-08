@@ -8,11 +8,13 @@ import (
 	"strings"
 )
 
+// PerfMonService Service for all monitored servers
 type PerfMonService struct {
 	monitors []PerfMonHost // host monitor parts
 	client   *PerfClient   // http client
 }
 
+// openSessionResponse response for open session to server
 type openSessionResponse struct {
 	XMLName       xml.Name `xml:"perfmonOpenSessionResponse"`
 	Text          string   `xml:",chardata"`
@@ -20,6 +22,7 @@ type openSessionResponse struct {
 	OpenSessionId string   `xml:"perfmonOpenSessionReturn"`
 }
 
+// NewPerfMonServers Create new performance client for all servers
 func NewPerfMonServers() *PerfMonService {
 	p := PerfMonService{
 		monitors: make([]PerfMonHost, 0),
@@ -32,13 +35,14 @@ func NewPerfMonServers() *PerfMonService {
 	return &p
 }
 
+// OpenSession open session to client
 func (s *PerfMonService) OpenSession() (err error) {
 	log.WithFields(s.logFields("OpenSession")).Trace("open new session")
 	req := " <soap:perfmonOpenSession/>"
 	body, err := s.client.processRequest("OpenSession", req)
 
 	if err != nil {
-		log.WithFields(s.logFields("OpenSession")).Errorf("session request fail witk message %s", err)
+		log.WithFields(s.logFields("OpenSession")).Errorf("session request fail with message %s", err)
 		return err
 	}
 
@@ -115,6 +119,7 @@ func (s *PerfMonService) CollectSessionData() (err error) {
 
 func (s *PerfMonService) ListAllCounters() (err error) {
 	log.WithFields(s.logFields("ListAllCounters")).Trace("collect all counters")
+	err = nil
 	for r := range s.monitors {
 		e := s.monitors[r].ListCounters(s.client)
 		if e != nil {
@@ -159,13 +164,13 @@ func (s *PerfMonService) logFields(operation ...string) log.Fields {
 	if len(operation) == 2 {
 		f = log.Fields{
 			"monitorNames": names.String(),
-			"operation":    operation[0],
+			Routine:        operation[0],
 			"sessionId":    operation[1],
 		}
 	} else if len(operation) == 1 {
 		f = log.Fields{
 			"monitorNames": names.String(),
-			"operation":    operation,
+			Routine:        operation,
 		}
 	} else {
 		f = log.Fields{

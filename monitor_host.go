@@ -236,13 +236,13 @@ func (h *PerfMonHost) logFields(operation ...string) log.Fields {
 	if len(operation) == 2 {
 		f = log.Fields{
 			"monitorName": h.server,
-			"operation":   operation[0],
+			Routine:       operation[0],
 			"sessionId":   operation[1],
 		}
 	} else if len(operation) == 1 {
 		f = log.Fields{
 			"monitorName": h.server,
-			"operation":   operation,
+			Routine:       operation,
 		}
 	} else {
 		f = log.Fields{

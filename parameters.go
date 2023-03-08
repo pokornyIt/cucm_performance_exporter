@@ -22,6 +22,8 @@ type Config struct {
 	ApiPassword       string         `yaml:"apiPwd" json:"apiPwd"`
 	Port              int            `yaml:"port" json:"port"`
 	IgnoreCertificate bool           `yaml:"ignoreCertificate" json:"ignoreCertificate"`
+	ApiTimeout        int            `yaml:"apiTimeout" json:"apiTimeout"`
+	AllowStop         bool           `yaml:"allowStop" json:"allowStop"`
 }
 
 type MetricsEnabled struct {
@@ -56,14 +58,14 @@ type Intervals struct {
 }
 
 var (
-	showConfig    = kingpin.Flag("config.show", "Show actual configuration and ends").Default("false").Bool()
-	configFile    = kingpin.Flag("config.file", "Configuration file default is \"server.yml\".").PlaceHolder("cfg.yml").Default("server.yml").String()
-	LogMaxSize    = Intervals{Default: 50, Min: 1, Max: 5000}       // Limits and defaults for Log MaxSize
-	LogMaxBackups = Intervals{Default: 5, Min: 0, Max: 100}         // Limits and defaults for Log MaxBackups
-	LogMaxAge     = Intervals{Default: 30, Min: 1, Max: 365}        // Limits and defaults for Log MaxAge
-	portLimits    = Intervals{Default: 9717, Min: 1024, Max: 65535} // Limits and defaults for ports
+	showConfig      = kingpin.Flag("config.show", "Show actual configuration and ends").Default("false").Bool()
+	configFile      = kingpin.Flag("config.file", "Configuration file default is \"server.yml\".").PlaceHolder("cfg.yml").Default("server.yml").String()
+	LogMaxSize      = Intervals{Default: 50, Min: 1, Max: 5000}       // Limits and defaults for Log MaxSize
+	LogMaxBackups   = Intervals{Default: 5, Min: 0, Max: 100}         // Limits and defaults for Log MaxBackups
+	LogMaxAge       = Intervals{Default: 30, Min: 1, Max: 365}        // Limits and defaults for Log MaxAge
+	PortLimits      = Intervals{Default: 9717, Min: 1024, Max: 65535} // Limits and defaults for ports
+	ApiTimeoutLimit = Intervals{Default: 5, Min: 1, Max: 30}          // Limits and defaults for Api Timeouts in sec
 
-	//listenAddress = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9717").String()
 	config = &Config{
 		Metrics: MetricsEnabled{
 			CallsActive:              true,
@@ -94,6 +96,8 @@ var (
 		ApiPassword:       "",
 		Port:              9717,
 		IgnoreCertificate: false,
+		ApiTimeout:        15,
+		AllowStop:         false,
 	}
 	apiServer = kingpin.Flag("api.address", "CUCM Server FQDN or IP address.").PlaceHolder("server").Default("").String()
 	apiUser   = kingpin.Flag("api.user", "CUCM user with access to PerfMON data.").PlaceHolder("User").Default("").String()
@@ -147,8 +151,11 @@ func (c *Config) Validate() (err error) {
 	if len(c.ApiPassword) < 1 {
 		return errors.New("API User password must be defined")
 	}
-	if !portLimits.Validate(c.Port) {
+	if !PortLimits.Validate(c.Port) {
 		return errors.New("defined port not valid")
+	}
+	if !ApiTimeoutLimit.Validate(c.ApiTimeout) {
+		return errors.New("defined API timeouts not valid")
 	}
 
 	// validate child
@@ -190,6 +197,8 @@ func (c *Config) print() string {
 	a = fmt.Sprintf("%sUser:                 [%s]\r\n", a, c.ApiUser)
 	a = fmt.Sprintf("%sServers:              [%s]\r\n", a, strings.Join(c.MonitorNames, ", "))
 	a = fmt.Sprintf("%sPort:                 [:%d]\r\n", a, c.Port)
+	a = fmt.Sprintf("%sTimeout:              [%d]\r\n", a, c.ApiTimeout)
+	a = fmt.Sprintf("%sAllow stop:           [%t]\r\n", a, c.AllowStop)
 
 	a = fmt.Sprintf("%s%s", a, c.Metrics.Print())
 	a = fmt.Sprintf("%s%s", a, c.Log.Print())
@@ -197,13 +206,19 @@ func (c *Config) print() string {
 }
 
 func (c *Config) logFields(operation ...string) log.Fields {
-	return log.Fields{
+	f := log.Fields{
 		"monitorNames":      strings.Join(c.MonitorNames, ";"),
 		"apiUser":           c.ApiUser,
 		"apiAddress":        c.ApiAddress,
 		"telemetryPort":     c.Port,
 		"ignoreCertificate": c.IgnoreCertificate,
 	}
+	if len(operation) > 0 {
+		for i, s := range operation {
+			f[fmt.Sprintf("option_%d", i)] = s
+		}
+	}
+	return f
 }
 
 func (m *MetricsEnabled) enablePrometheusCounter(name string) bool {
