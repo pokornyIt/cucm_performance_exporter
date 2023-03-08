@@ -4,6 +4,10 @@ import (
 	"encoding/xml"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"os"
+	"os/signal"
+	"strings"
+	"time"
 )
 
 const (
@@ -17,9 +21,9 @@ const (
 	QueryCounterDescription = "<soap:perfmonQueryCounterDescription>\r\n<soap:Counter>%s</soap:Counter>\r\n</soap:perfmonQueryCounterDescription>"
 )
 
-type PerfMonHost struct {
+type ClusterHostMonitorData struct {
 	server      string           // server name
-	counterList counterGroupList // list of available counters
+	counterList counterGroupList // counterList list of available counters
 }
 
 type counterGroupList struct {
@@ -36,7 +40,7 @@ type CounterDetails struct {
 	description string
 }
 
-type ListCounterResponse struct {
+type XmlListCounterResponse struct {
 	XMLName           xml.Name `xml:"perfmonListCounterResponse"`
 	Text              string   `xml:",chardata"`
 	Ns1               string   `xml:"ns1,attr"`
@@ -54,7 +58,7 @@ type ListCounterResponse struct {
 	} `xml:"perfmonListCounterReturn"`
 }
 
-type DescriptionCounterResponse struct {
+type XmlDescriptionCounterResponse struct {
 	XMLName                       xml.Name `xml:"perfmonQueryCounterDescriptionResponse"`
 	Text                          string   `xml:",chardata"`
 	Ns1                           string   `xml:"ns1,attr"`
@@ -91,26 +95,28 @@ func (c *counterGroup) counterPathBase(server string, counter string) string {
 //	return ""
 //}
 
-func NewPerMonHost(srv string) *PerfMonHost {
+// NewClusterHostMonitorData create new monitored hosts (CUCM servers) with empty counter group
+func NewClusterHostMonitorData(srv string) *ClusterHostMonitorData {
 	grp := make([]counterGroup, 0)
-	h := PerfMonHost{
+	h := ClusterHostMonitorData{
 		server:      srv,
 		counterList: counterGroupList{group: grp},
 	}
-	log.WithFields(h.logFields("new")).Trace("create session id holder for host")
+	log.WithFields(h.logFields("NewClusterHostMonitorData")).Trace("create session id holder for host")
 	return &h
 
 }
 
-func (h *PerfMonHost) createCounterList(data ListCounterResponse) {
+func (h *ClusterHostMonitorData) createCounterList(data XmlListCounterResponse) {
 	log.WithFields(h.logFields("createCounterList")).Tracef("create counter list from response")
+	defer duration(track(log.Fields{FieldRoutine: "createCounterList"}, "procedure ends"))
 	for _, listReturn := range data.ListCounterReturn {
 		if !inSlice(listReturn.Name, AllowedGroupNames) {
 			continue
 		}
 		m := make([]CounterDetails, 0)
 		for _, cnt := range listReturn.ArrayOfCounter.Item {
-			if isNameInAllowedCounter(cnt.Name) {
+			if isNameInAllowedCounter(cnt.Name) && config.Metrics.enablePrometheusCounter(cnt.Name) {
 				m = append(m, CounterDetails{
 					name:        cnt.Name,
 					description: "",
@@ -136,8 +142,10 @@ func inSlice(name string, list []string) bool {
 	return false
 }
 
-func (h *PerfMonHost) AddCounters(client *PerfClient) (err error) {
+// AddCounters request PerfMon API for add new counters into session
+func (h *ClusterHostMonitorData) AddCounters(client *ApiMonitorClient) (err error) {
 	log.WithFields(h.logFields("AddCounter")).Trace("add counters to session")
+	defer duration(track(h.logFields("AddCounter"), "procedure ends"))
 	cnt := ""
 	for _, group := range h.counterList.group {
 		for _, counter := range group.counterName {
@@ -162,9 +170,10 @@ func (h *PerfMonHost) AddCounters(client *PerfClient) (err error) {
 	return nil
 }
 
-// ListCounters Collect all counters from server
-func (h *PerfMonHost) ListCounters(client *PerfClient) (err error) {
+// ListCounters collect all counters from API server for specific CUCM host
+func (h *ClusterHostMonitorData) ListCounters(client *ApiMonitorClient) (err error) {
 	log.WithFields(h.logFields("ListCounters")).Trace("collect counters from server")
+	defer duration(track(h.logFields("ListCounters"), "procedure ends"))
 	if len(h.counterList.group) > 0 {
 		log.WithFields(h.logFields("ListCounters")).Trace("collect counters are read from list")
 		return nil
@@ -179,7 +188,7 @@ func (h *PerfMonHost) ListCounters(client *PerfClient) (err error) {
 		return err
 	}
 
-	var list ListCounterResponse
+	var list XmlListCounterResponse
 	err = xml.Unmarshal([]byte(body), &list)
 	if err != nil {
 		log.WithFields(h.logFields("ListCounters")).Errorf("problem convert XML body to struct. Error: %s", err)
@@ -189,10 +198,16 @@ func (h *PerfMonHost) ListCounters(client *PerfClient) (err error) {
 	return nil
 }
 
-func (h *PerfMonHost) ReadCounterDescription(client *PerfClient) (err error) {
+func (h *ClusterHostMonitorData) ReadCounterDescription(client *ApiMonitorClient) (err error) {
 	log.WithFields(h.logFields("ReadCounterDescription")).Trace("collect counters descriptions from server")
+	defer duration(track(h.logFields("ReadCounterDescription"), "procedure ends"))
 	var s string
+	var base string
 	errCounter := 0
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+
 	for g, group := range h.counterList.group {
 		if group.multiInstance {
 			log.WithFields(h.logFields("ReadCounterDescription")).Info("multi-instance not implement yet")
@@ -200,20 +215,36 @@ func (h *PerfMonHost) ReadCounterDescription(client *PerfClient) (err error) {
 		}
 
 		for c, counter := range group.counterName {
-			s = fmt.Sprintf(QueryCounterDescription, group.counterPathBase(h.server, counter.name))
-			body, err := client.processRequest("ReadCounterDescription", s)
-			if body == "401" {
-				log.WithFields(h.logFields("ReadCounterDescription")).Fatal("user not authorize for use performance API")
+			base = group.counterPathBase(h.server, counter.name)
+			select {
+			case <-time.After(time.Millisecond * 2):
+				break
+			case a := <-quit:
+				log.WithFields(log.Fields{FieldRoutine: "ReadCounterDescription"}).
+					Fatalf("function canceled by user request with signal %s", a)
 			}
-			if err != nil {
+			log.WithFields(h.logFields("ReadCounterDescription")).WithField(FieldMetricsName, base).
+				Tracef("collect counters descriptions for %s", counter.name)
+			s = fmt.Sprintf(QueryCounterDescription, base)
+			body, errRequest := client.processRequest("ReadCounterDescription", s)
+			if body == "401" {
+				log.WithFields(h.logFields("ReadCounterDescription")).WithField(FieldMetricsName, base).
+					Fatal("user not authorize for use performance API")
+			}
+			if strings.Contains(body, "RateControl") {
+				log.WithFields(h.logFields("ReadCounterDescription")).WithField(FieldMetricsName, base).
+					Fatal("exceeded allowed rate for Perfmon information")
+			}
+			if errRequest != nil {
 				errCounter++
 				continue
 			}
 
-			var description DescriptionCounterResponse
+			var description XmlDescriptionCounterResponse
 			err = xml.Unmarshal([]byte(body), &description)
 			if err != nil {
-				log.WithFields(h.logFields("ReadCounterDescription")).Errorf("problem convert XML body to struct. Error: %s", err)
+				log.WithFields(h.logFields("ReadCounterDescription")).WithField(FieldMetricsName, base).
+					Errorf("problem convert XML body to struct. Error: %s", err)
 				errCounter++
 				continue
 			}
@@ -227,26 +258,31 @@ func (h *PerfMonHost) ReadCounterDescription(client *PerfClient) (err error) {
 
 }
 
-func (h *PerfMonHost) print() string {
+func (h *ClusterHostMonitorData) print() string {
 
 	return ""
 }
-func (h *PerfMonHost) logFields(operation ...string) log.Fields {
+
+func (h *ClusterHostMonitorData) string() string {
+	return fmt.Sprintf("Errors in %s : %d", applicationName, monitors.client.responseErrors)
+}
+
+func (h *ClusterHostMonitorData) logFields(operation ...string) log.Fields {
 	var f log.Fields
 	if len(operation) == 2 {
 		f = log.Fields{
-			"monitorName": h.server,
-			"operation":   operation[0],
-			"sessionId":   operation[1],
+			FieldMonitorName: h.server,
+			FieldRoutine:     operation[0],
+			FieldSessionId:   operation[1],
 		}
 	} else if len(operation) == 1 {
 		f = log.Fields{
-			"monitorName": h.server,
-			"operation":   operation,
+			FieldMonitorName: h.server,
+			FieldRoutine:     operation[0],
 		}
 	} else {
 		f = log.Fields{
-			"monitorName": h.server,
+			FieldMonitorName: h.server,
 		}
 	}
 	return f

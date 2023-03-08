@@ -14,28 +14,73 @@ import (
 )
 
 type Config struct {
-	MonitorNames      []string       `yaml:"monitor_names" json:"monitor_names"`
-	Metrics           MetricsEnabled `yaml:"metrics" json:"metrics"`
-	Log               ConfigLog      `yaml:"log" json:"log"`
-	ApiAddress        string         `yaml:"apiAddress" json:"apiAddress"`
-	ApiUser           string         `yaml:"apiUser" json:"apiUser"`
-	ApiPassword       string         `yaml:"apiPwd" json:"apiPwd"`
-	Port              int            `yaml:"port" json:"port"`
-	IgnoreCertificate bool           `yaml:"ignoreCertificate" json:"ignoreCertificate"`
+	MonitorNames        []string       `yaml:"monitor_names" json:"monitor_names"`
+	Metrics             MetricsEnabled `yaml:"metrics" json:"metrics"`
+	Log                 ConfigLog      `yaml:"log" json:"log"`
+	ApiAddress          string         `yaml:"apiAddress" json:"apiAddress"`
+	ApiUser             string         `yaml:"apiUser" json:"apiUser"`
+	ApiPassword         string         `yaml:"apiPwd" json:"apiPwd"`
+	Port                int            `yaml:"port" json:"port"`
+	IgnoreCertificate   bool           `yaml:"ignoreCertificate" json:"ignoreCertificate"`
+	ApiTimeout          int            `yaml:"apiTimeout" json:"apiTimeout"`
+	AllowStop           bool           `yaml:"allowStop" json:"allowStop"`
+	SleepBetweenRequest int            `yaml:"sleepBetweenRequest" json:"sleepBetweenRequest"`
 }
 
 type MetricsEnabled struct {
-	CallsActive              bool `yaml:"callsActive" json:"callsActive"`
-	CallsInProgress          bool `yaml:"callsInProgress" json:"callsInProgress"`
-	CallsCompleted           bool `yaml:"callsCompleted" json:"callsCompleted"`
-	PartiallyRegisteredPhone bool `yaml:"partiallyRegisteredPhone" json:"partiallyRegisteredPhone"`
-	RegisteredHardwarePhones bool `yaml:"registeredHardwarePhones" json:"registeredHardwarePhones"`
-	GatewaysSessionsActive   bool `yaml:"gatewaysSessionsActive" json:"gatewaysSessionsActive"`
-	GatewaysSessionsFailed   bool `yaml:"gatewaysSessionsFailed" json:"gatewaysSessionsFailed"`
-	PhoneSessionsActive      bool `yaml:"phoneSessionsActive" json:"phoneSessionsActive"`
-	PhoneSessionsFailed      bool `yaml:"phoneSessionsFailed" json:"phoneSessionsFailed"`
-	GoCollector              bool `yaml:"goCollector" json:"goCollector"`
-	ProcessStatus            bool `yaml:"processStatus" json:"processStatus"`
+	CallsActive                               bool `yaml:"callsActive" json:"callsActive"`
+	CallsAttempted                            bool `yaml:"callsAttempted" json:"callsAttempted"`
+	CallsInProgress                           bool `yaml:"callsInProgress" json:"callsInProgress"`
+	CallsCompleted                            bool `yaml:"callsCompleted" json:"callsCompleted"`
+	PartiallyRegisteredPhone                  bool `yaml:"partiallyRegisteredPhone" json:"partiallyRegisteredPhone"`
+	RegisteredHardwarePhones                  bool `yaml:"registeredHardwarePhones" json:"registeredHardwarePhones"`
+	GatewayRegistrationFailures               bool `yaml:"gatewayRegistrationFailures" json:"gatewayRegistrationFailures"`
+	GatewaysInService                         bool `yaml:"gatewaysInService" json:"gatewaysInService"`
+	GatewaysOutOfService                      bool `yaml:"gatewaysOutOfService" json:"gatewaysOutOfService"`
+	GatewaysSessionsActive                    bool `yaml:"gatewaysSessionsActive" json:"gatewaysSessionsActive"`
+	GatewaysSessionsFailed                    bool `yaml:"gatewaysSessionsFailed" json:"gatewaysSessionsFailed"`
+	PhoneSessionsActive                       bool `yaml:"phoneSessionsActive" json:"phoneSessionsActive"`
+	PhoneSessionsFailed                       bool `yaml:"phoneSessionsFailed" json:"phoneSessionsFailed"`
+	GoCollector                               bool `yaml:"goCollector" json:"goCollector"`
+	ProcessStatus                             bool `yaml:"processStatus" json:"processStatus"`
+	AnnunciatorOutOfResources                 bool `yaml:"annunciatorOutOfResources" json:"annunciatorOutOfResources"`
+	AnnunciatorResourceActive                 bool `yaml:"annunciatorResourceActive" json:"annunciatorResourceActive"`
+	AnnunciatorResourceAvailable              bool `yaml:"annunciatorResourceAvailable" json:"annunciatorResourceAvailable"`
+	AnnunciatorResourceTotal                  bool `yaml:"annunciatorResourceTotal" json:"annunciatorResourceTotal"`
+	AuthenticatedCallsActive                  bool `yaml:"authenticatedCallsActive" json:"authenticatedCallsActive"`
+	AuthenticatedCallsCompleted               bool `yaml:"authenticatedCallsCompleted" json:"authenticatedCallsCompleted"`
+	AuthenticatedPartiallyRegisteredPhone     bool `yaml:"authenticatedPartiallyRegisteredPhone" json:"authenticatedPartiallyRegisteredPhone"`
+	AuthenticatedRegisteredPhones             bool `yaml:"authenticatedRegisteredPhones" json:"authenticatedRegisteredPhones"`
+	CallManagerHeartBeat                      bool `yaml:"callManagerHeartBeat" json:"callManagerHeartBeat"`
+	CumulativeAllocatedResourceCannotOpenPort bool `yaml:"cumulativeAllocatedResourceCannotOpenPort" json:"cumulativeAllocatedResourceCannotOpenPort"`
+	EncryptedCallsActive                      bool `yaml:"encryptedCallsActive" json:"encryptedCallsActive"`
+	EncryptedCallsCompleted                   bool `yaml:"encryptedCallsCompleted" json:"encryptedCallsCompleted"`
+	EncryptedPartiallyRegisteredPhones        bool `yaml:"encryptedPartiallyRegisteredPhones" json:"encryptedPartiallyRegisteredPhones"`
+	EncryptedRegisteredPhones                 bool `yaml:"encryptedRegisteredPhones" json:"encryptedRegisteredPhones"`
+	MTPOutOfResources                         bool `yaml:"mtpOutOfResources" json:"mtpOutOfResources"`
+	MTPRequestsThrottled                      bool `yaml:"mtpRequestsThrottled" json:"mtpRequestsThrottled"`
+	MTPResourceActive                         bool `yaml:"mtpResourceActive" json:"mtpResourceActive"`
+	MTPResourceAvailable                      bool `yaml:"mtpResourceAvailable" json:"mtpResourceAvailable"`
+	MTPResourceTotal                          bool `yaml:"mtpResourceTotal" json:"mtpResourceTotal"`
+	SIPLineServerAuthorizationChallenges      bool `yaml:"sipLineServerAuthorizationChallenges" json:"sipLineServerAuthorizationChallenges"`
+	SIPLineServerAuthorizationFailures        bool `yaml:"sipLineServerAuthorizationFailures" json:"sipLineServerAuthorizationFailures"`
+	SIPTrunkApplicationAuthorizationFailures  bool `yaml:"sipTrunkApplicationAuthorizationFailures" json:"sipTrunkApplicationAuthorizationFailures"`
+	SIPTrunkApplicationAuthorizations         bool `yaml:"sipTrunkApplicationAuthorizations" json:"sipTrunkApplicationAuthorizations"`
+	SIPTrunkAuthorizationFailures             bool `yaml:"sipTrunkAuthorizationFailures" json:"sipTrunkAuthorizationFailures"`
+	SIPTrunkAuthorizations                    bool `yaml:"sipTrunkAuthorizations" json:"sipTrunkAuthorizations"`
+	SIPTrunkServerAuthenticationChallenges    bool `yaml:"sipTrunkServerAuthenticationChallenges" json:"sipTrunkServerAuthenticationChallenges"`
+	SystemCallsAttempted                      bool `yaml:"systemCallsAttempted" json:"systemCallsAttempted"`
+	TranscoderOutOfResources                  bool `yaml:"transcoderOutOfResources" json:"transcoderOutOfResources"`
+	TranscoderRequestsThrottled               bool `yaml:"transcoderRequestsThrottled" json:"transcoderRequestsThrottled"`
+	TranscoderResourceActive                  bool `yaml:"transcoderResourceActive" json:"transcoderResourceActive"`
+	TranscoderResourceAvailable               bool `yaml:"transcoderResourceAvailable" json:"transcoderResourceAvailable"`
+	TranscoderResourceTotal                   bool `yaml:"transcoderResourceTotal" json:"transcoderResourceTotal"`
+	UnEncryptedCallFailures                   bool `yaml:"unEncryptedCallFailures" json:"unEncryptedCallFailures"`
+	VideoCallsActive                          bool `yaml:"videoCallsActive" json:"videoCallsActive"`
+	VideoCallsCompleted                       bool `yaml:"videoCallsCompleted" json:"videoCallsCompleted"`
+	VideoOnHoldOutOfResources                 bool `yaml:"videoOnHoldOutOfResources" json:"videoOnHoldOutOfResources"`
+	VideoOnHoldResourceActive                 bool `yaml:"videoOnHoldResourceActive" json:"videoOnHoldResourceActive"`
+	VideoOutOfResources                       bool `yaml:"videoOutOfResources" json:"videoOutOfResources"`
 }
 
 type ConfigLog struct {
@@ -56,27 +101,70 @@ type Intervals struct {
 }
 
 var (
-	showConfig    = kingpin.Flag("config.show", "Show actual configuration and ends").Default("false").Bool()
-	configFile    = kingpin.Flag("config.file", "Configuration file default is \"server.yml\".").PlaceHolder("cfg.yml").Default("server.yml").String()
-	LogMaxSize    = Intervals{Default: 50, Min: 1, Max: 5000}       // Limits and defaults for Log MaxSize
-	LogMaxBackups = Intervals{Default: 5, Min: 0, Max: 100}         // Limits and defaults for Log MaxBackups
-	LogMaxAge     = Intervals{Default: 30, Min: 1, Max: 365}        // Limits and defaults for Log MaxAge
-	portLimits    = Intervals{Default: 9717, Min: 1024, Max: 65535} // Limits and defaults for ports
+	showConfig               = kingpin.Flag("config.show", "Show actual configuration and ends").Default("false").Bool()
+	configFile               = kingpin.Flag("config.file", "Configuration file default is \"server.yml\".").PlaceHolder("cfg.yml").Default("server.yml").String()
+	LogMaxSize               = Intervals{Default: 50, Min: 1, Max: 5000}       // Limits and defaults for Log MaxSize
+	LogMaxBackups            = Intervals{Default: 5, Min: 0, Max: 100}         // Limits and defaults for Log MaxBackups
+	LogMaxAge                = Intervals{Default: 30, Min: 1, Max: 365}        // Limits and defaults for Log MaxAge
+	PortLimits               = Intervals{Default: 9717, Min: 1024, Max: 65535} // Limits and defaults for ports
+	ApiTimeoutLimit          = Intervals{Default: 5, Min: 1, Max: 30}          // Limits and defaults for API Timeouts in sec
+	SleepBetweenRequestLimit = Intervals{Default: 30, Min: 5, Max: 120}        // Limits and defaults for sleep between API requests in  sec
 
-	//listenAddress = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9717").String()
 	config = &Config{
 		Metrics: MetricsEnabled{
-			CallsActive:              true,
-			CallsInProgress:          true,
-			CallsCompleted:           true,
-			PartiallyRegisteredPhone: true,
-			RegisteredHardwarePhones: true,
-			GatewaysSessionsActive:   true,
-			GatewaysSessionsFailed:   true,
-			PhoneSessionsActive:      true,
-			PhoneSessionsFailed:      true,
-			GoCollector:              true,
-			ProcessStatus:            true,
+			CallsActive:                               true,
+			CallsInProgress:                           true,
+			CallsCompleted:                            true,
+			PartiallyRegisteredPhone:                  true,
+			RegisteredHardwarePhones:                  true,
+			GatewaysSessionsActive:                    true,
+			GatewaysSessionsFailed:                    true,
+			PhoneSessionsActive:                       true,
+			PhoneSessionsFailed:                       true,
+			GoCollector:                               true,
+			ProcessStatus:                             true,
+			CallsAttempted:                            false,
+			GatewayRegistrationFailures:               false,
+			GatewaysInService:                         false,
+			GatewaysOutOfService:                      false,
+			AnnunciatorOutOfResources:                 false,
+			AnnunciatorResourceActive:                 false,
+			AnnunciatorResourceAvailable:              false,
+			AnnunciatorResourceTotal:                  false,
+			AuthenticatedCallsActive:                  false,
+			AuthenticatedCallsCompleted:               false,
+			AuthenticatedPartiallyRegisteredPhone:     false,
+			AuthenticatedRegisteredPhones:             false,
+			CallManagerHeartBeat:                      false,
+			CumulativeAllocatedResourceCannotOpenPort: false,
+			EncryptedCallsActive:                      false,
+			EncryptedCallsCompleted:                   false,
+			EncryptedPartiallyRegisteredPhones:        false,
+			EncryptedRegisteredPhones:                 false,
+			MTPOutOfResources:                         false,
+			MTPRequestsThrottled:                      false,
+			MTPResourceActive:                         false,
+			MTPResourceAvailable:                      false,
+			MTPResourceTotal:                          true,
+			SIPLineServerAuthorizationChallenges:      false,
+			SIPLineServerAuthorizationFailures:        false,
+			SIPTrunkApplicationAuthorizationFailures:  false,
+			SIPTrunkApplicationAuthorizations:         false,
+			SIPTrunkAuthorizationFailures:             false,
+			SIPTrunkAuthorizations:                    false,
+			SIPTrunkServerAuthenticationChallenges:    false,
+			SystemCallsAttempted:                      false,
+			TranscoderOutOfResources:                  false,
+			TranscoderRequestsThrottled:               false,
+			TranscoderResourceActive:                  false,
+			TranscoderResourceAvailable:               false,
+			TranscoderResourceTotal:                   false,
+			UnEncryptedCallFailures:                   false,
+			VideoCallsActive:                          false,
+			VideoCallsCompleted:                       false,
+			VideoOnHoldOutOfResources:                 false,
+			VideoOnHoldResourceActive:                 false,
+			VideoOutOfResources:                       false,
 		},
 		Log: ConfigLog{
 			Level:          "Info",
@@ -88,12 +176,15 @@ var (
 			MaxAge:         LogMaxAge.Default,
 			Quiet:          false,
 		},
-		MonitorNames:      []string{},
-		ApiAddress:        "",
-		ApiUser:           "",
-		ApiPassword:       "",
-		Port:              9717,
-		IgnoreCertificate: false,
+		MonitorNames:        []string{},
+		ApiAddress:          "",
+		ApiUser:             "",
+		ApiPassword:         "",
+		Port:                9717,
+		IgnoreCertificate:   false,
+		ApiTimeout:          15,
+		AllowStop:           false,
+		SleepBetweenRequest: 30,
 	}
 	apiServer = kingpin.Flag("api.address", "CUCM Server FQDN or IP address.").PlaceHolder("server").Default("").String()
 	apiUser   = kingpin.Flag("api.user", "CUCM user with access to PerfMON data.").PlaceHolder("User").Default("").String()
@@ -147,8 +238,14 @@ func (c *Config) Validate() (err error) {
 	if len(c.ApiPassword) < 1 {
 		return errors.New("API User password must be defined")
 	}
-	if !portLimits.Validate(c.Port) {
+	if !PortLimits.Validate(c.Port) {
 		return errors.New("defined port not valid")
+	}
+	if !ApiTimeoutLimit.Validate(c.ApiTimeout) {
+		return errors.New("defined API timeouts not valid")
+	}
+	if !SleepBetweenRequestLimit.Validate(c.SleepBetweenRequest) {
+		return errors.New("defined sleep between request is not valid")
 	}
 
 	// validate child
@@ -190,6 +287,9 @@ func (c *Config) print() string {
 	a = fmt.Sprintf("%sUser:                 [%s]\r\n", a, c.ApiUser)
 	a = fmt.Sprintf("%sServers:              [%s]\r\n", a, strings.Join(c.MonitorNames, ", "))
 	a = fmt.Sprintf("%sPort:                 [:%d]\r\n", a, c.Port)
+	a = fmt.Sprintf("%sTimeout:              [%d]\r\n", a, c.ApiTimeout)
+	a = fmt.Sprintf("%sSleep time:           [%d]\r\n", a, c.SleepBetweenRequest)
+	a = fmt.Sprintf("%sAllow stop:           [%t]\r\n", a, c.AllowStop)
 
 	a = fmt.Sprintf("%s%s", a, c.Metrics.Print())
 	a = fmt.Sprintf("%s%s", a, c.Log.Print())
@@ -197,13 +297,19 @@ func (c *Config) print() string {
 }
 
 func (c *Config) logFields(operation ...string) log.Fields {
-	return log.Fields{
+	f := log.Fields{
 		"monitorNames":      strings.Join(c.MonitorNames, ";"),
 		"apiUser":           c.ApiUser,
 		"apiAddress":        c.ApiAddress,
 		"telemetryPort":     c.Port,
 		"ignoreCertificate": c.IgnoreCertificate,
 	}
+	if len(operation) > 0 {
+		for i, s := range operation {
+			f[fmt.Sprintf("option_%d", i)] = s
+		}
+	}
+	return f
 }
 
 func (m *MetricsEnabled) enablePrometheusCounter(name string) bool {
@@ -233,6 +339,132 @@ func (m *MetricsEnabled) enablePrometheusCounter(name string) bool {
 	}
 	if name == PhoneSessionsFailed {
 		return m.PhoneSessionsFailed
+	}
+	if name == AnnunciatorOutOfResources {
+		return m.AnnunciatorOutOfResources
+	}
+	if name == CallsAttempted {
+		return m.CallsAttempted
+	}
+	if name == GatewayRegistrationFailures {
+		return m.GatewayRegistrationFailures
+	}
+	if name == GatewaysInService {
+		return m.GatewaysInService
+	}
+	if name == GatewaysOutOfService {
+		return m.GatewaysOutOfService
+	}
+	if name == AnnunciatorResourceActive {
+		return m.AnnunciatorResourceActive
+	}
+	if name == AnnunciatorResourceAvailable {
+		return m.AnnunciatorResourceAvailable
+	}
+	if name == AnnunciatorResourceTotal {
+		return m.AnnunciatorResourceTotal
+	}
+	if name == AuthenticatedCallsActive {
+		return m.AuthenticatedCallsActive
+	}
+	if name == AuthenticatedCallsCompleted {
+		return m.AuthenticatedCallsCompleted
+	}
+	if name == AuthenticatedPartiallyRegisteredPhone {
+		return m.AuthenticatedPartiallyRegisteredPhone
+	}
+	if name == AuthenticatedRegisteredPhones {
+		return m.AuthenticatedRegisteredPhones
+	}
+	if name == CallManagerHeartBeat {
+		return m.CallManagerHeartBeat
+	}
+	if name == CumulativeAllocatedResourceCannotOpenPort {
+		return m.CumulativeAllocatedResourceCannotOpenPort
+	}
+	if name == EncryptedCallsActive {
+		return m.EncryptedCallsActive
+	}
+	if name == EncryptedCallsCompleted {
+		return m.EncryptedCallsCompleted
+	}
+	if name == EncryptedPartiallyRegisteredPhones {
+		return m.EncryptedPartiallyRegisteredPhones
+	}
+	if name == EncryptedRegisteredPhones {
+		return m.EncryptedRegisteredPhones
+	}
+	if name == MTPOutOfResources {
+		return m.MTPOutOfResources
+	}
+	if name == MTPRequestsThrottled {
+		return m.MTPRequestsThrottled
+	}
+	if name == MTPResourceActive {
+		return m.MTPResourceActive
+	}
+	if name == MTPResourceAvailable {
+		return m.MTPResourceAvailable
+	}
+	if name == MTPResourceTotal {
+		return m.MTPResourceTotal
+	}
+	if name == SIPLineServerAuthorizationChallenges {
+		return m.SIPLineServerAuthorizationChallenges
+	}
+	if name == SIPLineServerAuthorizationFailures {
+		return m.SIPLineServerAuthorizationFailures
+	}
+	if name == SIPTrunkApplicationAuthorizationFailures {
+		return m.SIPTrunkApplicationAuthorizationFailures
+	}
+	if name == SIPTrunkApplicationAuthorizations {
+		return m.SIPTrunkApplicationAuthorizations
+	}
+	if name == SIPTrunkAuthorizationFailures {
+		return m.SIPTrunkAuthorizationFailures
+	}
+	if name == SIPTrunkAuthorizations {
+		return m.SIPTrunkAuthorizations
+	}
+	if name == SIPTrunkServerAuthenticationChallenges {
+		return m.SIPTrunkServerAuthenticationChallenges
+	}
+	if name == SystemCallsAttempted {
+		return m.SystemCallsAttempted
+	}
+	if name == TranscoderOutOfResources {
+		return m.TranscoderOutOfResources
+	}
+	if name == TranscoderRequestsThrottled {
+		return m.TranscoderRequestsThrottled
+	}
+	if name == TranscoderResourceActive {
+		return m.TranscoderResourceActive
+	}
+	if name == TranscoderResourceAvailable {
+		return m.TranscoderResourceAvailable
+	}
+	if name == TranscoderResourceTotal {
+		return m.TranscoderResourceTotal
+	}
+	if name == UnEncryptedCallFailures {
+		return m.UnEncryptedCallFailures
+	}
+	if name == VideoCallsActive {
+		return m.VideoCallsActive
+	}
+	if name == VideoCallsCompleted {
+		return m.VideoCallsCompleted
+	}
+	if name == VideoOnHoldOutOfResources {
+		return m.VideoOnHoldOutOfResources
+	}
+	if name == VideoOnHoldResourceActive {
+		return m.VideoOnHoldResourceActive
+	}
+	if name == VideoOutOfResources {
+		return m.VideoOutOfResources
 	}
 
 	return false

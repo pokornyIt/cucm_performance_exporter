@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"time"
 )
 
 type FaultResponse struct {
@@ -19,13 +20,18 @@ type FaultResponse struct {
 	Detail      string   `xml:"detail"`
 }
 
+// perfRequestCreate generate http request wit request ID and body
+//   - request to https://<API server>:8443/perfmonservice2/services/PerfmonService?wsdl
 func perfRequestCreate(requestId string, body string) (req *http.Request, err error) {
-	log.WithFields(log.Fields{"routine": "perfRequestCreate", "requestId": requestId}).Trace("prepare request")
+	log.WithFields(log.Fields{FieldRoutine: "perfRequestCreate", FieldRequestId: requestId}).Trace("prepare request")
+	if LogRequestDuration {
+		defer duration(track(log.Fields{FieldRoutine: "perfRequestCreate", FieldRequestId: requestId}, "procedure ends"))
+	}
 	server := fmt.Sprintf("https://%s:8443/perfmonservice2/services/PerfmonService?wsdl", config.ApiAddress)
-	log.WithFields(log.Fields{"routine": "perfRequestCreate", "requestId": requestId}).Tracef("prepare server API name: %s", server)
+	log.WithFields(log.Fields{FieldRoutine: "perfRequestCreate", FieldRequestId: requestId}).Tracef("prepare server API name: %s", server)
 	req, err = http.NewRequest("POST", server, bytes.NewBuffer([]byte(body)))
 	if err != nil {
-		log.WithField("routine", "perfRequestCreate").Errorf("problem create request. Error: %s", err)
+		log.WithField(FieldRoutine, "perfRequestCreate").Errorf("problem create request. Error: %s", err)
 		return nil, err
 	}
 	req.Header.Add("User-Agent", httpApplicationName())
@@ -38,10 +44,25 @@ func perfRequestCreate(requestId string, body string) (req *http.Request, err er
 }
 
 func perfRequestResponse(requestId string, client *http.Client, req *http.Request) (body string, resp *http.Response, err error) {
-	log.WithFields(log.Fields{"routine": "perfRequestResponse", "requestId": requestId}).Trace("get response")
+	log.WithFields(log.Fields{FieldRoutine: "perfRequestResponse", FieldRequestId: requestId}).Trace("get response")
+	if LogRequestDuration {
+		defer duration(track(log.Fields{FieldRoutine: "perfRequestResponse", FieldRequestId: requestId}, "procedure ends"))
+	}
+	requestsCount := rateRequest.requests
+	waitTime := rateRequest.delay()
+	if waitTime > time.Millisecond {
+		if waitTime > RateStandardDelay {
+			log.WithFields(log.Fields{FieldRoutine: "perfRequestResponse", FieldRequestId: requestId}).
+				Warnf("wait after %d requests for %s", requestsCount, waitTime.String())
+		} else {
+			log.WithFields(log.Fields{FieldRoutine: "perfRequestResponse", FieldRequestId: requestId}).
+				Debugf("wait after %d requests for %s", requestsCount, waitTime.String())
+		}
+		time.Sleep(waitTime)
+	}
 	resp, err = client.Do(req)
 	if err != nil {
-		log.WithFields(log.Fields{"routine": "perfRequestResponse", "requestId": requestId}).Errorf("problem process request. Error: %s", err)
+		log.WithFields(log.Fields{FieldRoutine: "perfRequestResponse", FieldRequestId: requestId}).Errorf("problem process request. Error: %s", err)
 		return "", resp, err
 	}
 	s, err := io.ReadAll(resp.Body)

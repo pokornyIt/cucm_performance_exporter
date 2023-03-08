@@ -12,8 +12,14 @@ import (
 )
 
 const (
-	identificationId      = "id"
-	identificationIdOrder = "00__id__"
+	FieldRoutine       = "routine"     // flag for routine name
+	FieldRequestId     = "requestId"   // unique request ID
+	FieldMetricsName   = "metricsName" // metrics name
+	FieldIsUp          = "isUp"        // is server up
+	FieldSession       = "session"     // define session ID
+	FieldMonitorName   = "monitorName" // define monitor name field
+	FieldSessionId     = "sessionId"   // define name for session ID field
+	LogRequestDuration = false         // define if logg duration for every request
 )
 
 func validLogLevel(level string) log.Level {
@@ -58,31 +64,6 @@ func initLog() {
 		Formatter.TimestampFormat = "2006-01-02 15:04:05.000"
 		Formatter.FullTimestamp = true
 		Formatter.DisableLevelTruncation = false
-		//Formatter.SortingFunc = func(i []string) {
-		//	if len(i) < 2 {
-		//		return
-		//	}
-		//	idx := -1
-		//	for j, s := range i {
-		//		if s == identificationId {
-		//			idx = j
-		//		}
-		//	}
-		//	if idx > -1 && idx < len(i) {
-		//		i[idx] = identificationIdOrder
-		//	}
-		//	sort.Strings(i)
-		//	idx = -1
-		//	for j, s := range i {
-		//		if s == identificationIdOrder {
-		//			idx = j
-		//		}
-		//	}
-		//	if idx > -1 && idx < len(i) {
-		//		i[idx] = identificationId
-		//	}
-		//
-		//}
 		Formatter.ForceColors = !logToFile
 		Formatter.CallerPrettyfier = func(f *runtime.Frame) (string, string) {
 			filename := path.Base(f.File)

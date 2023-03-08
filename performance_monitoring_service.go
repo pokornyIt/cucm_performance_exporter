@@ -8,11 +8,13 @@ import (
 	"strings"
 )
 
+// PerfMonService struct hold CUCM API and list of CUCM cluster server names
 type PerfMonService struct {
-	monitors []PerfMonHost // host monitor parts
-	client   *PerfClient   // http client
+	monitors []ClusterHostMonitorData // monitors list of CUCM cluster server names
+	client   *ApiMonitorClient        // client API client with prepared http.Client
 }
 
+// openSessionResponse response for open session to server
 type openSessionResponse struct {
 	XMLName       xml.Name `xml:"perfmonOpenSessionResponse"`
 	Text          string   `xml:",chardata"`
@@ -20,25 +22,28 @@ type openSessionResponse struct {
 	OpenSessionId string   `xml:"perfmonOpenSessionReturn"`
 }
 
+// NewPerfMonServers Create new performance client for all servers
 func NewPerfMonServers() *PerfMonService {
 	p := PerfMonService{
-		monitors: make([]PerfMonHost, 0),
-		client:   NewPerfClient(),
+		monitors: make([]ClusterHostMonitorData, 0),
+		client:   NewApiMonitorClient(),
 	}
 	for _, r := range config.MonitorNames {
-		p.monitors = append(p.monitors, *NewPerMonHost(r))
+		p.monitors = append(p.monitors, *NewClusterHostMonitorData(r))
 	}
 	log.WithFields(p.logFields("NewPerfMonServers")).Trace("create monitor service")
 	return &p
 }
 
+// OpenSession open PerfMon API session and store session ID
 func (s *PerfMonService) OpenSession() (err error) {
 	log.WithFields(s.logFields("OpenSession")).Trace("open new session")
+	defer duration(track(s.logFields("OpenSession"), "procedure ends"))
 	req := " <soap:perfmonOpenSession/>"
 	body, err := s.client.processRequest("OpenSession", req)
 
 	if err != nil {
-		log.WithFields(s.logFields("OpenSession")).Errorf("session request fail witk message %s", err)
+		log.WithFields(s.logFields("OpenSession")).Errorf("session request fail with message %s", err)
 		return err
 	}
 
@@ -49,10 +54,11 @@ func (s *PerfMonService) OpenSession() (err error) {
 		return err
 	}
 	s.client.session = data.OpenSessionId
-	log.WithFields(s.logFields("OpenSession", data.OpenSessionId)).Infof("open new monitoring session")
+	log.WithFields(s.logFields("OpenSession", s.client.session)).Infof("open new monitoring session")
 	return nil
 }
 
+// AddCounters add PerfMon session counters
 func (s *PerfMonService) AddCounters() {
 	log.WithFields(s.logFields("AddCounters", s.client.session)).Trace("register counters for session")
 	if !s.client.isSessionOpen() {
@@ -72,8 +78,10 @@ func (s *PerfMonService) AddCounters() {
 	}
 }
 
+// CloseSession close actual API session and remove all Prometheus metrics
 func (s *PerfMonService) CloseSession() {
 	log.WithFields(s.logFields("CloseSession")).Trace("close existing session")
+	defer duration(track(s.logFields("CloseSession"), "procedure ends"))
 	if !s.client.isSessionOpen() {
 		log.WithFields(s.logFields("CloseSession")).Debug("not any open session")
 		return
@@ -85,12 +93,14 @@ func (s *PerfMonService) CloseSession() {
 	prometheusRemoveMetrics()
 }
 
+// ExistSession is open API session
 func (s *PerfMonService) ExistSession() bool {
 	return s.client.isSessionOpen()
 }
 
 func (s *PerfMonService) CollectSessionData() (err error) {
 	log.WithFields(s.logFields("CollectSessionData", s.client.session)).Trace("collect session data")
+	defer duration(track(s.logFields("CollectSessionData"), "procedure ends"))
 
 	if !s.client.isSessionOpen() {
 		log.WithFields(s.logFields("CollectSessionData")).Debug("session not open")
@@ -113,8 +123,11 @@ func (s *PerfMonService) CollectSessionData() (err error) {
 	return nil
 }
 
+// ListAllCounters collect counters for all servers in cluster
 func (s *PerfMonService) ListAllCounters() (err error) {
 	log.WithFields(s.logFields("ListAllCounters")).Trace("collect all counters")
+	defer duration(track(s.logFields("ListAllCounters"), "procedure ends"))
+	err = nil
 	for r := range s.monitors {
 		e := s.monitors[r].ListCounters(s.client)
 		if e != nil {
@@ -144,7 +157,6 @@ func (s *PerfMonService) GetCounterDetails(name string) (details *CounterDetails
 }
 
 func (s *PerfMonService) print() string {
-
 	return ""
 }
 func (s *PerfMonService) logFields(operation ...string) log.Fields {
@@ -158,18 +170,18 @@ func (s *PerfMonService) logFields(operation ...string) log.Fields {
 	var f log.Fields
 	if len(operation) == 2 {
 		f = log.Fields{
-			"monitorNames": names.String(),
-			"operation":    operation[0],
-			"sessionId":    operation[1],
+			FieldMonitorName: names.String(),
+			FieldRoutine:     operation[0],
+			FieldSessionId:   operation[1],
 		}
 	} else if len(operation) == 1 {
 		f = log.Fields{
-			"monitorNames": names.String(),
-			"operation":    operation,
+			FieldMonitorName: names.String(),
+			FieldRoutine:     operation[0],
 		}
 	} else {
 		f = log.Fields{
-			"monitorNames": names.String(),
+			FieldMonitorName: names.String(),
 		}
 	}
 
