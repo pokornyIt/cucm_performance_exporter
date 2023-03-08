@@ -204,8 +204,8 @@ func (h *ClusterHostMonitorData) ReadCounterDescription(client *ApiMonitorClient
 	var s string
 	var base string
 	errCounter := 0
+
 	quit := make(chan os.Signal, 1)
-	//defer close(quit)
 	signal.Notify(quit, os.Interrupt)
 
 	for g, group := range h.counterList.group {

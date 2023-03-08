@@ -174,7 +174,7 @@ func gracefullyShutdown(server *http.Server, quit <-chan os.Signal, done chan<- 
 }
 
 // runHttpServer run web server
-func runHttpServer(srv *http.Server, done <-chan bool) {
+func runHttpServer(srv *http.Server) {
 	defer duration(track(log.Fields{FieldRoutine: "runHttpServer"}, "procedure ends"))
 	err := srv.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {

@@ -34,23 +34,6 @@ func (s *SessionData) processData() {
 			if strings.HasSuffix(strings.ToLower(counter), "failed") {
 				newVal := data.Value - counterActual[counter]
 				if newVal < 0 {
-					//log.WithFields(log.Fields{FieldRoutine: "processData", FieldMetricsName: counter, "counter": counterActual[counter], "counter new": data.Value}).
-					//	Infof("reset metrics for counter %s, because difference is %f", counter, newVal)
-					//var counterDetail *CounterDetails
-					//counterDetail, err = monitors.GetCounterDetails(counter)
-					//if err != nil {
-					//	log.WithFields(log.Fields{FieldRoutine: "processData", FieldMetricsName: counter}).Errorf("not defined description for %s", counter)
-					//	continue
-					//}
-					//prometheus.Unregister(counterMetrics[counter])
-					//counterMetrics[counter] = prometheus.NewCounterVec(
-					//	prometheus.CounterOpts{
-					//		Name: getPrometheusName(counter),
-					//		Help: counterDetail.description,
-					//	}, []string{"server"})
-					//prometheus.MustRegister(counterMetrics[counter])
-					//counterActual[counter] = float64(0)
-					//newVal = data.Value
 					continue
 				}
 				counterMetrics[counter].WithLabelValues(server).Add(newVal)

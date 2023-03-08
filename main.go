@@ -105,7 +105,7 @@ func monitoringProcess() {
 	log.WithFields(log.Fields{FieldRoutine: "monitoringProcess"}).Trace("start web server and gracefully shutdown GO routines")
 	srv := newWebServer(quit)
 	go gracefullyShutdown(srv, quit, done)
-	go runHttpServer(srv, done)
+	go runHttpServer(srv)
 
 	if toStopChannel == nil {
 		log.WithFields(log.Fields{FieldRoutine: "monitoringProcess"}).Fatal("problem start http listener")
