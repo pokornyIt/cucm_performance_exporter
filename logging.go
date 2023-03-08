@@ -12,9 +12,14 @@ import (
 )
 
 const (
-	Routine     = "routine"   // flag for routine name
-	RequestId   = "requestId" // unique request ID
-	MetricsName = "metricsName"
+	FieldRoutine       = "routine"     // flag for routine name
+	FieldRequestId     = "requestId"   // unique request ID
+	FieldMetricsName   = "metricsName" // metrics name
+	FieldIsUp          = "isUp"        // is server up
+	FieldSession       = "session"     // define session ID
+	FieldMonitorName   = "monitorName" // define monitor name field
+	FieldSessionId     = "sessionId"   // define name for session ID field
+	LogRequestDuration = false         // define if logg duration for every request
 )
 
 func validLogLevel(level string) log.Level {

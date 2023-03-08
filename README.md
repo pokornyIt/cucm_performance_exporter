@@ -35,6 +35,7 @@ apiPwd: password
 apiTimeout: 5
 ignoreCertificate: true
 allowStop: false
+sleepBetweenRequest: 30
 log:
   level: info
   fileName: ''
@@ -55,6 +56,7 @@ log:
 - **apiTimeout** - API request timeout in second between 1 and 30 sec, default is 5
 - **ignoreCertificate** - system ignore certificate validity
 - **allowStop** - allow stopping the program from web UI
+- **sleepBetweenRequest** - how long program sleep between requests in sec (5 - 120)
 - **log** - setup logging from system
 
 ## Actual supported metrics
@@ -77,7 +79,8 @@ log:
 - **phoneSessionsFailed** - This is a cumulative counter which specifies the total number of phone-preferred recording
   sessions which failed since the last restart of the Cisco Unified Communications Manager service.
 
-Program allow enabling/disabling standard GO client metrics. Detail about this metrics are described in [Exploring Prometheus GO client Metrics](https://povilasv.me/prometheus-go-metrics/#).
+Program allow enabling/disabling standard GO client metrics. Detail about this metrics are described
+in [Exploring Prometheus GO client Metrics](https://povilasv.me/prometheus-go-metrics/#).
 
 - **goCollector** - enable/disable internal program GO metrics
 - **processStatus** - enable/disable internal program status metrics

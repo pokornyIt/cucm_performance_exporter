@@ -3,28 +3,30 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"encoding/xml"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 )
 
-type PerfClient struct {
-	client  *http.Client // reference to exist HTTP Client
-	session string       // session
-	//lastRequest    time.Time    // last request
-	requests       uint64 // success created request
-	responses      uint64 // success obtains responses
-	responseErrors uint64 // error obtain responses
+// ApiMonitorClient API client
+type ApiMonitorClient struct {
+	client         *http.Client // client reference to exist HTTP Client
+	session        string       // session actual id
+	requests       uint64       // requests success created request
+	responses      uint64       // responses success obtains response
+	responseErrors uint64       // responseErrors error obtain response
 }
 
-func NewPerfClient() *PerfClient {
-	var cp PerfClient
+// NewApiMonitorClient create new API client with prepared http.Client
+func NewApiMonitorClient() *ApiMonitorClient {
+	var cp ApiMonitorClient
 	if config.IgnoreCertificate {
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		cp = PerfClient{
+		cp = ApiMonitorClient{
 			client:         &http.Client{Transport: tr},
 			requests:       0,
 			responses:      0,
@@ -32,7 +34,7 @@ func NewPerfClient() *PerfClient {
 			session:        "",
 		}
 	} else {
-		cp = PerfClient{
+		cp = ApiMonitorClient{
 			client:         &http.Client{},
 			requests:       0,
 			responses:      0,
@@ -43,7 +45,12 @@ func NewPerfClient() *PerfClient {
 	return &cp
 }
 
-func (p *PerfClient) processRequest(name string, inner string) (body string, err error) {
+// processRequest process one request to API with predefined timeout
+// program returns collected body or error if here any problem
+func (p *ApiMonitorClient) processRequest(name string, inner string) (body string, err error) {
+	if LogRequestDuration {
+		defer duration(track(log.Fields{FieldRoutine: "processRequest"}, "procedure ends"))
+	}
 	var req *http.Request
 	var resp *http.Response
 	s := fmt.Sprintf(Envelope, inner)
@@ -60,8 +67,13 @@ func (p *PerfClient) processRequest(name string, inner string) (body string, err
 	body, resp, err = perfRequestResponse(requestId, p.client, req)
 	if resp != nil && resp.StatusCode > 299 {
 		log.WithFields(p.logFields(name)).Errorf("problem read %s response. Status code: %s", name, resp.Status)
+		var f FaultResponse
+		err = xml.Unmarshal([]byte(body), &f)
 		p.responseErrors++
-		return fmt.Sprintf("%d", resp.StatusCode), fmt.Errorf("response status is %s", resp.Status)
+		if resp.StatusCode == 401 || err != nil {
+			return fmt.Sprintf("%d", resp.StatusCode), fmt.Errorf("response status is %s - %s %s", resp.Status, f.FaultCode, f.FaultString)
+		}
+		return f.FaultCode, fmt.Errorf("response status is %s - %s %s", resp.Status, f.FaultCode, f.FaultString)
 	}
 
 	if err != nil {
@@ -78,21 +90,35 @@ func (p *PerfClient) processRequest(name string, inner string) (body string, err
 	return body, nil
 }
 
-func (p *PerfClient) isSessionOpen() bool {
+// isSessionOpen Define if connection is UP
+func (p *ApiMonitorClient) isSessionOpen() bool {
 	return len(p.session) > 0
 }
 
-func (p *PerfClient) logFields(operation ...string) log.Fields {
+// logFields create valid list of log fields depend on server
+func (p *ApiMonitorClient) logFields(operation ...string) log.Fields {
 	var f log.Fields
 	if len(operation) == 1 {
 		f = log.Fields{
-			"session": p.session,
-			Routine:   operation,
+			FieldSession: p.session,
+			FieldIsUp:    p.isSessionOpen(),
+			FieldRoutine: operation,
 		}
 	} else {
 		f = log.Fields{
-			"session": p.session,
+			FieldIsUp:    p.isSessionOpen(),
+			FieldSession: p.session,
 		}
 	}
 	return f
+}
+
+// print List actual error status of client
+func (p *ApiMonitorClient) print() string {
+	msg := "Client status"
+	msg = fmt.Sprintf("%s\r\nRequests     %d", msg, p.requests)
+	msg = fmt.Sprintf("%s\r\nResponses    %d", msg, p.responses)
+	msg = fmt.Sprintf("%s\r\nError        %d", msg, p.responseErrors)
+	msg = fmt.Sprintf("%s\r\nConnected    %t", msg, p.isSessionOpen())
+	return msg
 }
