@@ -35,7 +35,7 @@ func (s *SessionData) processData() {
 				if newVal < 0 {
 					//log.WithFields(log.Fields{"operation": "processData", "metricsName": counter, "counter": counterActual[counter], "counter new": data.Value}).
 					//	Infof("reset metrics for counter %s, because difference is %f", counter, newVal)
-					//var counterDetail *counterDetails
+					//var counterDetail *CounterDetails
 					//counterDetail, err = monitors.GetCounterDetails(counter)
 					//if err != nil {
 					//	log.WithFields(log.Fields{"operation": "processData", "metricsName": counter}).Errorf("not defined description for %s", counter)

@@ -12,23 +12,23 @@ import (
 	"time"
 )
 
+//goland:noinspection SpellCheckingInspection
 const (
-	applicationName = "cucm-perfmon-exporter"                                // application name
-	letterBytes     = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // map for random string
-	letterIdxBits   = 6                                                      // 6 bits to represent a letter index
-	letterIdxMask   = 1<<letterIdxBits - 1                                   // All 1-bits, as many as letterIdxBits
-	letterIdxMax    = 63 / letterIdxBits                                     // # of letter indices fitting in 63 bits
-	maxRandomSize   = 10                                                     // required size of random string
-	//shortBodyChars  = 120                                                    // Max length print from string
-	TimeFormat           = "15:04:05.0000" // time format
-	sleepBetweenSessions = 10              // sleep second between open new session or reconnect to server
+	applicationName      = "cucm-perfmon-exporter"                                // application name
+	letterBytes          = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // map for random string
+	letterIdxBits        = 6                                                      // 6 bits to represent a letter index
+	letterIdxMask        = 1<<letterIdxBits - 1                                   // All 1-bits, as many as letterIdxBits
+	letterIdxMax         = 63 / letterIdxBits                                     // # of letter indices fitting in 63 bits
+	maxRandomSize        = 10                                                     // required size of random string
+	TimeFormat           = "15:04:05.0000"                                        // time format
+	sleepBetweenSessions = 10                                                     // sleep second between open new session or reconnect to server
 )
 
 var src = rand.NewSource(time.Now().UnixNano())
 var (
 	help          bool           // show help?
 	toStopChannel chan bool      // used for setup stop
-	monitors      perfMonService // registered service
+	monitors      PerfMonService // registered service
 	Version       string         // for build data
 	Revision      string         // for build data
 	Branch        string         // for build data

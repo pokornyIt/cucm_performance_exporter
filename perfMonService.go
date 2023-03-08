@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-type perfMonService struct {
-	monitors []perfMonHost // host monitor parts
-	client   *perfClient   // http client
+type PerfMonService struct {
+	monitors []PerfMonHost // host monitor parts
+	client   *PerfClient   // http client
 }
 
 type openSessionResponse struct {
@@ -20,9 +20,9 @@ type openSessionResponse struct {
 	OpenSessionId string   `xml:"perfmonOpenSessionReturn"`
 }
 
-func NewPerfMonServers() *perfMonService {
-	p := perfMonService{
-		monitors: make([]perfMonHost, 0),
+func NewPerfMonServers() *PerfMonService {
+	p := PerfMonService{
+		monitors: make([]PerfMonHost, 0),
 		client:   NewPerfClient(),
 	}
 	for _, r := range config.MonitorNames {
@@ -32,7 +32,7 @@ func NewPerfMonServers() *perfMonService {
 	return &p
 }
 
-func (s *perfMonService) OpenSession() (err error) {
+func (s *PerfMonService) OpenSession() (err error) {
 	log.WithFields(s.logFields("OpenSession")).Trace("open new session")
 	req := " <soap:perfmonOpenSession/>"
 	body, err := s.client.processRequest("OpenSession", req)
@@ -53,7 +53,7 @@ func (s *perfMonService) OpenSession() (err error) {
 	return nil
 }
 
-func (s *perfMonService) AddCounters() {
+func (s *PerfMonService) AddCounters() {
 	log.WithFields(s.logFields("AddCounters", s.client.session)).Trace("register counters for session")
 	if !s.client.isSessionOpen() {
 		log.WithFields(s.logFields("AddCounters")).Debug("session not open")
@@ -72,7 +72,7 @@ func (s *perfMonService) AddCounters() {
 	}
 }
 
-func (s *perfMonService) CloseSession() {
+func (s *PerfMonService) CloseSession() {
 	log.WithFields(s.logFields("CloseSession")).Trace("close existing session")
 	if !s.client.isSessionOpen() {
 		log.WithFields(s.logFields("CloseSession")).Debug("not any open session")
@@ -85,11 +85,11 @@ func (s *perfMonService) CloseSession() {
 	prometheusRemoveMetrics()
 }
 
-func (s *perfMonService) ExistSession() bool {
+func (s *PerfMonService) ExistSession() bool {
 	return s.client.isSessionOpen()
 }
 
-func (s *perfMonService) CollectSessionData() (err error) {
+func (s *PerfMonService) CollectSessionData() (err error) {
 	log.WithFields(s.logFields("CollectSessionData", s.client.session)).Trace("collect session data")
 
 	if !s.client.isSessionOpen() {
@@ -113,7 +113,7 @@ func (s *perfMonService) CollectSessionData() (err error) {
 	return nil
 }
 
-func (s *perfMonService) ListAllCounters() (err error) {
+func (s *PerfMonService) ListAllCounters() (err error) {
 	log.WithFields(s.logFields("ListAllCounters")).Trace("collect all counters")
 	for r := range s.monitors {
 		e := s.monitors[r].ListCounters(s.client)
@@ -128,7 +128,7 @@ func (s *perfMonService) ListAllCounters() (err error) {
 	return err
 }
 
-func (s *perfMonService) GetCounterDetails(name string) (details *counterDetails, err error) {
+func (s *PerfMonService) GetCounterDetails(name string) (details *CounterDetails, err error) {
 	for srv, server := range s.monitors {
 		for g, group := range server.counterList.group {
 			for c, counter := range group.counterName {
@@ -139,15 +139,15 @@ func (s *perfMonService) GetCounterDetails(name string) (details *counterDetails
 		}
 	}
 	log.WithFields(s.logFields("GetCounterDetails")).Errorf("not found details for counter %s", name)
-	details = &counterDetails{name: name, description: fmt.Sprintf("Description for %s not exists", name)}
+	details = &CounterDetails{name: name, description: fmt.Sprintf("Description for %s not exists", name)}
 	return details, fmt.Errorf("problem found required counter [%s] on any server", name)
 }
 
-func (s *perfMonService) print() string {
+func (s *PerfMonService) print() string {
 
 	return ""
 }
-func (s *perfMonService) logFields(operation ...string) log.Fields {
+func (s *PerfMonService) logFields(operation ...string) log.Fields {
 	names := strings.Builder{}
 	delimiter := ""
 	for _, r := range s.monitors {

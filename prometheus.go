@@ -70,7 +70,7 @@ func prometheusCreateMetrics() {
 	counterMetrics = make(map[string]*prometheus.CounterVec)
 	counterActual = make(map[string]float64)
 
-	var counter *counterDetails
+	var counter *CounterDetails
 	var err error
 	if !config.Metrics.GoCollector {
 		prometheus.Unregister(collectors.NewGoCollector())
@@ -89,7 +89,7 @@ func prometheusCreateMetrics() {
 			log.WithFields(log.Fields{"operation": "newWebServer", "metricsName": cnt.prometheusName}).Errorf("not defined description for %s", cnt.allowedCounterName)
 		}
 		if counter == nil {
-			counter = &counterDetails{name: cnt.allowedCounterName, description: fmt.Sprintf("Description for %s not exists", cnt.allowedCounterName)}
+			counter = &CounterDetails{name: cnt.allowedCounterName, description: fmt.Sprintf("Description for %s not exists", cnt.allowedCounterName)}
 		}
 		if strings.HasSuffix(strings.ToLower(cnt.allowedCounterName), "failed") {
 			counterMetrics[cnt.allowedCounterName] = prometheus.NewCounterVec(
