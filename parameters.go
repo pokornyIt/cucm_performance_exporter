@@ -7,7 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"os"
 	"path"
 	"regexp"
@@ -104,7 +103,7 @@ var (
 
 // LoadFile Load configuration file form filename
 func (c *Config) LoadFile(filename string) (err error) {
-	content, err := ioutil.ReadFile(filename)
+	content, err := os.ReadFile(filename)
 	if err != nil {
 		return err
 	}

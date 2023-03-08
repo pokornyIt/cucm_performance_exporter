@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-type perfClient struct {
+type PerfClient struct {
 	client  *http.Client // reference to exist HTTP Client
 	session string       // session
 	//lastRequest    time.Time    // last request
@@ -16,13 +16,13 @@ type perfClient struct {
 	responseErrors uint64 // error obtain responses
 }
 
-func NewPerfClient() *perfClient {
-	var cp perfClient
+func NewPerfClient() *PerfClient {
+	var cp PerfClient
 	if config.IgnoreCertificate {
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		cp = perfClient{
+		cp = PerfClient{
 			client:         &http.Client{Transport: tr},
 			requests:       0,
 			responses:      0,
@@ -30,7 +30,7 @@ func NewPerfClient() *perfClient {
 			session:        "",
 		}
 	} else {
-		cp = perfClient{
+		cp = PerfClient{
 			client:         &http.Client{},
 			requests:       0,
 			responses:      0,
@@ -41,7 +41,7 @@ func NewPerfClient() *perfClient {
 	return &cp
 }
 
-func (p *perfClient) processRequest(name string, inner string) (body string, err error) {
+func (p *PerfClient) processRequest(name string, inner string) (body string, err error) {
 	s := fmt.Sprintf(Envelope, inner)
 	requestId := RandomString()
 	req, err := perfRequestCreate(requestId, s)
@@ -71,11 +71,11 @@ func (p *perfClient) processRequest(name string, inner string) (body string, err
 	return body, nil
 }
 
-func (p *perfClient) isSessionOpen() bool {
+func (p *PerfClient) isSessionOpen() bool {
 	return len(p.session) > 0
 }
 
-func (p *perfClient) logFields(operation ...string) log.Fields {
+func (p *PerfClient) logFields(operation ...string) log.Fields {
 	var f log.Fields
 	if len(operation) == 1 {
 		f = log.Fields{

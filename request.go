@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"regexp"
 )
@@ -44,7 +44,7 @@ func perfRequestResponse(requestId string, client *http.Client, req *http.Reques
 		log.WithFields(log.Fields{"routine": "perfRequestResponse", "requestId": requestId}).Errorf("problem process request. Error: %s", err)
 		return "", resp, err
 	}
-	s, err := ioutil.ReadAll(resp.Body)
+	s, err := io.ReadAll(resp.Body)
 	return string(s), resp, err
 }
 

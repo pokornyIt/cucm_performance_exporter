@@ -17,7 +17,7 @@ const (
 	QueryCounterDescription = "<soap:perfmonQueryCounterDescription>\r\n<soap:Counter>%s</soap:Counter>\r\n</soap:perfmonQueryCounterDescription>"
 )
 
-type perfMonHost struct {
+type PerfMonHost struct {
 	server      string           // server name
 	counterList counterGroupList // list of available counters
 }
@@ -29,9 +29,9 @@ type counterGroupList struct {
 type counterGroup struct {
 	groupName     string           // name of group same as used in counter group list
 	multiInstance bool             // is multi instance of counter
-	counterName   []counterDetails // list of counter name
+	counterName   []CounterDetails // list of counter name
 }
-type counterDetails struct {
+type CounterDetails struct {
 	name        string
 	description string
 }
@@ -91,9 +91,9 @@ func (c *counterGroup) counterPathBase(server string, counter string) string {
 //	return ""
 //}
 
-func NewPerMonHost(srv string) *perfMonHost {
+func NewPerMonHost(srv string) *PerfMonHost {
 	grp := make([]counterGroup, 0)
-	h := perfMonHost{
+	h := PerfMonHost{
 		server:      srv,
 		counterList: counterGroupList{group: grp},
 	}
@@ -102,16 +102,16 @@ func NewPerMonHost(srv string) *perfMonHost {
 
 }
 
-func (h *perfMonHost) createCounterList(data ListCounterResponse) {
+func (h *PerfMonHost) createCounterList(data ListCounterResponse) {
 	log.WithFields(h.logFields("createCounterList")).Tracef("create counter list from response")
 	for _, listReturn := range data.ListCounterReturn {
 		if !inSlice(listReturn.Name, AllowedGroupNames) {
 			continue
 		}
-		m := make([]counterDetails, 0)
+		m := make([]CounterDetails, 0)
 		for _, cnt := range listReturn.ArrayOfCounter.Item {
 			if isNameInAllowedCounter(cnt.Name) {
-				m = append(m, counterDetails{
+				m = append(m, CounterDetails{
 					name:        cnt.Name,
 					description: "",
 				})
@@ -136,7 +136,7 @@ func inSlice(name string, list []string) bool {
 	return false
 }
 
-func (h *perfMonHost) AddCounters(client *perfClient) (err error) {
+func (h *PerfMonHost) AddCounters(client *PerfClient) (err error) {
 	log.WithFields(h.logFields("AddCounter")).Trace("add counters to session")
 	cnt := ""
 	for _, group := range h.counterList.group {
@@ -162,9 +162,8 @@ func (h *perfMonHost) AddCounters(client *perfClient) (err error) {
 	return nil
 }
 
-// Collect all counters from server
-//
-func (h *perfMonHost) ListCounters(client *perfClient) (err error) {
+// ListCounters Collect all counters from server
+func (h *PerfMonHost) ListCounters(client *PerfClient) (err error) {
 	log.WithFields(h.logFields("ListCounters")).Trace("collect counters from server")
 	if len(h.counterList.group) > 0 {
 		log.WithFields(h.logFields("ListCounters")).Trace("collect counters are read from list")
@@ -190,7 +189,7 @@ func (h *perfMonHost) ListCounters(client *perfClient) (err error) {
 	return nil
 }
 
-func (h *perfMonHost) ReadCounterDescription(client *perfClient) (err error) {
+func (h *PerfMonHost) ReadCounterDescription(client *PerfClient) (err error) {
 	log.WithFields(h.logFields("ReadCounterDescription")).Trace("collect counters descriptions from server")
 	var s string
 	errCounter := 0
@@ -228,11 +227,11 @@ func (h *perfMonHost) ReadCounterDescription(client *perfClient) (err error) {
 
 }
 
-func (h *perfMonHost) print() string {
+func (h *PerfMonHost) print() string {
 
 	return ""
 }
-func (h *perfMonHost) logFields(operation ...string) log.Fields {
+func (h *PerfMonHost) logFields(operation ...string) log.Fields {
 	var f log.Fields
 	if len(operation) == 2 {
 		f = log.Fields{
