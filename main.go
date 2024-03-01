@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/prometheus/common/version"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"math/rand"
 	"os"
 	"os/signal"
