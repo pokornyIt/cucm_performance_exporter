@@ -29,11 +29,20 @@ metrics:
   encryptedCallsCompleted: false
   encryptedPartiallyRegisteredPhones: false
   encryptedRegisteredPhones: false
+  hwConferenceActive: false
+  hwConferenceCompleted: false
+  hwConferenceOutOfResources: false
+  hwConferenceResourceActive: false
+  hwConferenceResourceAvailable: false
+  hwConferenceResourceTotal: false
   mtpOutOfResources: false
   mtpRequestsThrottled: false
   mtpResourceActive: false
   mtpResourceAvailable: false
   mtpResourceTotal: true
+  registeredAnalogAccess: false
+  registeredMGCPGateway: false
+  registeredOtherStationDevices: false
   sipLineServerAuthorizationChallenges: false
   sipLineServerAuthorizationFailures: false
   sipTrunkApplicationAuthorizationFailures: false
@@ -41,6 +50,12 @@ metrics:
   sipTrunkAuthorizationFailures: false
   sipTrunkAuthorizations: false
   sipTrunkServerAuthenticationChallenges: false
+  swConferenceActive: false
+  swConferenceCompleted: false
+  swConferenceOutOfResources: false
+  swConferenceResourceActive: false
+  swConferenceResourceAvailable: false
+  swConferenceResourceTotal: false
   systemCallsAttempted: false
   transcoderOutOfResources: false
   transcoderRequestsThrottled: false

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/alecthomas/kingpin/v2"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
 	"os"
 	"path"
@@ -57,11 +57,20 @@ type MetricsEnabled struct {
 	EncryptedCallsCompleted                   bool `yaml:"encryptedCallsCompleted" json:"encryptedCallsCompleted"`
 	EncryptedPartiallyRegisteredPhones        bool `yaml:"encryptedPartiallyRegisteredPhones" json:"encryptedPartiallyRegisteredPhones"`
 	EncryptedRegisteredPhones                 bool `yaml:"encryptedRegisteredPhones" json:"encryptedRegisteredPhones"`
+	HWConferenceActive                        bool `yaml:"hwConferenceActive" json:"hwConferenceActive"`
+	HWConferenceCompleted                     bool `yaml:"hwConferenceCompleted" json:"hwConferenceCompleted"`
+	HWConferenceOutOfResources                bool `yaml:"hwConferenceOutOfResources" json:"hwConferenceOutOfResources"`
+	HWConferenceResourceActive                bool `yaml:"hwConferenceResourceActive" json:"hwConferenceResourceActive"`
+	HWConferenceResourceAvailable             bool `yaml:"hwConferenceResourceAvailable" json:"hwConferenceResourceAvailable"`
+	HWConferenceResourceTotal                 bool `yaml:"hwConferenceResourceTotal" json:"hwConferenceResourceTotal"`
 	MTPOutOfResources                         bool `yaml:"mtpOutOfResources" json:"mtpOutOfResources"`
 	MTPRequestsThrottled                      bool `yaml:"mtpRequestsThrottled" json:"mtpRequestsThrottled"`
 	MTPResourceActive                         bool `yaml:"mtpResourceActive" json:"mtpResourceActive"`
 	MTPResourceAvailable                      bool `yaml:"mtpResourceAvailable" json:"mtpResourceAvailable"`
 	MTPResourceTotal                          bool `yaml:"mtpResourceTotal" json:"mtpResourceTotal"`
+	RegisteredAnalogAccess                    bool `yaml:"registeredAnalogAccess" json:"registeredAnalogAccess"`
+	RegisteredMGCPGateway                     bool `yaml:"registeredMGCPGateway" json:"registeredMGCPGateway"`
+	RegisteredOtherStationDevices             bool `yaml:"registeredOtherStationDevices" json:"registeredOtherStationDevices"`
 	SIPLineServerAuthorizationChallenges      bool `yaml:"sipLineServerAuthorizationChallenges" json:"sipLineServerAuthorizationChallenges"`
 	SIPLineServerAuthorizationFailures        bool `yaml:"sipLineServerAuthorizationFailures" json:"sipLineServerAuthorizationFailures"`
 	SIPTrunkApplicationAuthorizationFailures  bool `yaml:"sipTrunkApplicationAuthorizationFailures" json:"sipTrunkApplicationAuthorizationFailures"`
@@ -69,6 +78,12 @@ type MetricsEnabled struct {
 	SIPTrunkAuthorizationFailures             bool `yaml:"sipTrunkAuthorizationFailures" json:"sipTrunkAuthorizationFailures"`
 	SIPTrunkAuthorizations                    bool `yaml:"sipTrunkAuthorizations" json:"sipTrunkAuthorizations"`
 	SIPTrunkServerAuthenticationChallenges    bool `yaml:"sipTrunkServerAuthenticationChallenges" json:"sipTrunkServerAuthenticationChallenges"`
+	SWConferenceActive                        bool `yaml:"swConferenceActive" json:"swConferenceActive"`
+	SWConferenceCompleted                     bool `yaml:"swConferenceCompleted" json:"swConferenceCompleted"`
+	SWConferenceOutOfResources                bool `yaml:"swConferenceOutOfResources" json:"swConferenceOutOfResources"`
+	SWConferenceResourceActive                bool `yaml:"swConferenceResourceActive" json:"swConferenceResourceActive"`
+	SWConferenceResourceAvailable             bool `yaml:"swConferenceResourceAvailable" json:"swConferenceResourceAvailable"`
+	SWConferenceResourceTotal                 bool `yaml:"swConferenceResourceTotal" json:"swConferenceResourceTotal"`
 	SystemCallsAttempted                      bool `yaml:"systemCallsAttempted" json:"systemCallsAttempted"`
 	TranscoderOutOfResources                  bool `yaml:"transcoderOutOfResources" json:"transcoderOutOfResources"`
 	TranscoderRequestsThrottled               bool `yaml:"transcoderRequestsThrottled" json:"transcoderRequestsThrottled"`
@@ -141,11 +156,20 @@ var (
 			EncryptedCallsCompleted:                   false,
 			EncryptedPartiallyRegisteredPhones:        false,
 			EncryptedRegisteredPhones:                 false,
+			HWConferenceActive:                        false,
+			HWConferenceCompleted:                     false,
+			HWConferenceOutOfResources:                false,
+			HWConferenceResourceActive:                false,
+			HWConferenceResourceAvailable:             false,
+			HWConferenceResourceTotal:                 false,
 			MTPOutOfResources:                         false,
 			MTPRequestsThrottled:                      false,
 			MTPResourceActive:                         false,
 			MTPResourceAvailable:                      false,
 			MTPResourceTotal:                          true,
+			RegisteredAnalogAccess:                    false,
+			RegisteredMGCPGateway:                     false,
+			RegisteredOtherStationDevices:             false,
 			SIPLineServerAuthorizationChallenges:      false,
 			SIPLineServerAuthorizationFailures:        false,
 			SIPTrunkApplicationAuthorizationFailures:  false,
@@ -153,6 +177,12 @@ var (
 			SIPTrunkAuthorizationFailures:             false,
 			SIPTrunkAuthorizations:                    false,
 			SIPTrunkServerAuthenticationChallenges:    false,
+			SWConferenceActive:                        false,
+			SWConferenceCompleted:                     false,
+			SWConferenceOutOfResources:                false,
+			SWConferenceResourceActive:                false,
+			SWConferenceResourceAvailable:             false,
+			SWConferenceResourceTotal:                 false,
 			SystemCallsAttempted:                      false,
 			TranscoderOutOfResources:                  false,
 			TranscoderRequestsThrottled:               false,
@@ -465,6 +495,51 @@ func (m *MetricsEnabled) enablePrometheusCounter(name string) bool {
 	}
 	if name == VideoOutOfResources {
 		return m.VideoOutOfResources
+	}
+	if name == HWConferenceActive {
+		return m.HWConferenceActive
+	}
+	if name == HWConferenceCompleted {
+		return m.HWConferenceCompleted
+	}
+	if name == HWConferenceOutOfResources {
+		return m.HWConferenceOutOfResources
+	}
+	if name == HWConferenceResourceActive {
+		return m.HWConferenceResourceActive
+	}
+	if name == HWConferenceResourceAvailable {
+		return m.HWConferenceResourceAvailable
+	}
+	if name == HWConferenceResourceTotal {
+		return m.HWConferenceResourceTotal
+	}
+	if name == SWConferenceActive {
+		return m.SWConferenceActive
+	}
+	if name == SWConferenceCompleted {
+		return m.SWConferenceCompleted
+	}
+	if name == SWConferenceOutOfResources {
+		return m.SWConferenceOutOfResources
+	}
+	if name == SWConferenceResourceActive {
+		return m.SWConferenceResourceActive
+	}
+	if name == SWConferenceResourceAvailable {
+		return m.SWConferenceResourceAvailable
+	}
+	if name == SWConferenceResourceTotal {
+		return m.SWConferenceResourceTotal
+	}
+	if name == RegisteredAnalogAccess {
+		return m.RegisteredAnalogAccess
+	}
+	if name == RegisteredMGCPGateway {
+		return m.RegisteredMGCPGateway
+	}
+	if name == RegisteredOtherStationDevices {
+		return m.RegisteredOtherStationDevices
 	}
 
 	return false
