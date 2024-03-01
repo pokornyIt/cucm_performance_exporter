@@ -46,11 +46,23 @@ metrics:
   encryptedCallsCompleted: false
   encryptedPartiallyRegisteredPhones: false
   encryptedRegisteredPhones: false
+  hwConferenceActive: false
+  hwConferenceCompleted: false
+  hwConferenceOutOfResources: false
+  hwConferenceResourceActive: false
+  hwConferenceResourceAvailable: false
+  hwConferenceResourceTotal: false
   mtpOutOfResources: false
   mtpRequestsThrottled: false
   mtpResourceActive: false
   mtpResourceAvailable: false
   mtpResourceTotal: true
+  swConferenceActive: false
+  swConferenceCompleted: false
+  swConferenceOutOfResources: false
+  swConferenceResourceActive: false
+  swConferenceResourceAvailable: false
+  swConferenceResourceTotal: false
   sipLineServerAuthorizationChallenges: false
   sipLineServerAuthorizationFailures: false
   sipTrunkApplicationAuthorizationFailures: false

@@ -52,6 +52,13 @@ const (
 	HWConferenceResourceAvailable = "HWConferenceResourceAvailable"
 	HWConferenceResourceTotal     = "HWConferenceResourceTotal"
 
+	SWConferenceActive            = "SWConferenceActive"
+	SWConferenceCompleted         = "SWConferenceCompleted"
+	SWConferenceOutOfResources    = "SWConferenceOutOfResources"
+	SWConferenceResourceActive    = "SWConferenceResourceActive"
+	SWConferenceResourceAvailable = "SWConferenceResourceAvailable"
+	SWConferenceResourceTotal     = "SWConferenceResourceTotal"
+
 	HuntListsInService   = "HuntListsInService"
 	IVROutOfResources    = "IVROutOfResources"
 	IVRResourceActive    = "IVRResourceActive"
@@ -114,6 +121,11 @@ const (
 	GatewaysSessionsFailed      = "GatewaysSessionsFailed"
 	PhoneSessionsActive         = "PhoneSessionsActive"
 	PhoneSessionsFailed         = "PhoneSessionsFailed"
+
+	// RegisteredAnalogAccess registered devices
+	RegisteredAnalogAccess        = "RegisteredAnalogAccess"
+	RegisteredMGCPGateway         = "RegisteredMGCPGateway"
+	RegisteredOtherStationDevices = "RegisteredOtherStationDevices"
 )
 
 var (
@@ -180,6 +192,24 @@ var (
 		{allowedCounterName: GatewaysSessionsFailed, prometheusName: "cucm_gateways_sessions_failed", defaultEnabled: true},
 		{allowedCounterName: PhoneSessionsActive, prometheusName: "cucm_phone_sessions_active", defaultEnabled: true},
 		{allowedCounterName: PhoneSessionsFailed, prometheusName: "cucm_phone_sessions_failed", defaultEnabled: true},
+		// HW Conference
+		{allowedCounterName: HWConferenceActive, prometheusName: "cucm_hw_conference_active", defaultEnabled: false},
+		{allowedCounterName: HWConferenceCompleted, prometheusName: "cucm_hw_conference_completed", defaultEnabled: false},
+		{allowedCounterName: HWConferenceOutOfResources, prometheusName: "cucm_hw_conference_out_of_resources", defaultEnabled: false},
+		{allowedCounterName: HWConferenceResourceActive, prometheusName: "cucm_hw_conference_resource_active", defaultEnabled: false},
+		{allowedCounterName: HWConferenceResourceAvailable, prometheusName: "cucm_hw_conference_resource_available", defaultEnabled: false},
+		{allowedCounterName: HWConferenceResourceTotal, prometheusName: "cucm_hw_conference_resource_total", defaultEnabled: false},
+		// SW Conference
+		{allowedCounterName: SWConferenceActive, prometheusName: "cucm_sw_conference_active", defaultEnabled: false},
+		{allowedCounterName: SWConferenceCompleted, prometheusName: "cucm_sw_conference_completed", defaultEnabled: false},
+		{allowedCounterName: SWConferenceOutOfResources, prometheusName: "cucm_sw_conference_out_of_resources", defaultEnabled: false},
+		{allowedCounterName: SWConferenceResourceActive, prometheusName: "cucm_sw_conference_resource_active", defaultEnabled: false},
+		{allowedCounterName: SWConferenceResourceAvailable, prometheusName: "cucm_sw_conference_resource_available", defaultEnabled: false},
+		{allowedCounterName: SWConferenceResourceTotal, prometheusName: "cucm_sw_conference_resource_total", defaultEnabled: false},
+		// registered info
+		{allowedCounterName: RegisteredAnalogAccess, prometheusName: "cucm_registered_analog_access", defaultEnabled: false},
+		{allowedCounterName: RegisteredMGCPGateway, prometheusName: "cucm_registered_mgcp_gateway", defaultEnabled: false},
+		{allowedCounterName: RegisteredOtherStationDevices, prometheusName: "cucm_registered_other_station_devices", defaultEnabled: false},
 	}
 )
 
