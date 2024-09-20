@@ -82,6 +82,9 @@ metrics:
   videoOnHoldOutOfResources: false
   videoOnHoldResourceActive: false
   videoOutOfResources: false
+  registeredAnalogAccess: false
+  registeredMGCPGateway: false
+  registeredOtherStationDevices: false
 port: 9719
 apiAddress: publisher.name
 apiUser: api_allowed_user
