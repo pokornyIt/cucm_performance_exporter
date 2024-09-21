@@ -43,6 +43,14 @@ metrics:
   registeredAnalogAccess: false
   registeredMGCPGateway: false
   registeredOtherStationDevices: false
+  registeredBOTJabberMRA: false
+  registeredBOTJabberNonMRA: false
+  registeredCSFJabberMRA: false
+  registeredCSFJabberNonMRA: false
+  registeredTABJabberMRA: false
+  registeredTABJabberNonMRA: false
+  registeredTCTJabberMRA: false
+  registeredTCTJabberNonMRA: false
   sipLineServerAuthorizationChallenges: false
   sipLineServerAuthorizationFailures: false
   sipTrunkApplicationAuthorizationFailures: false

@@ -57,6 +57,14 @@ metrics:
   mtpResourceActive: false
   mtpResourceAvailable: false
   mtpResourceTotal: true
+  registeredBOTJabberMRA: false
+  registeredBOTJabberNonMRA: false
+  registeredCSFJabberMRA: false
+  registeredCSFJabberNonMRA: false
+  registeredTABJabberMRA: false
+  registeredTABJabberNonMRA: false
+  registeredTCTJabberMRA: false
+  registeredTCTJabberNonMRA: false
   swConferenceActive: false
   swConferenceCompleted: false
   swConferenceOutOfResources: false

@@ -87,6 +87,15 @@ const (
 	MTPResourceAvailable = "MTPResourceAvailable"
 	MTPResourceTotal     = "MTPResourceTotal"
 
+	RegisteredBOTJabberMRA    = "RegisteredBOTJabberMRA"
+	RegisteredBOTJabberNonMRA = "RegisteredBOTJabberNonMRA"
+	RegisteredCSFJabberMRA    = "RegisteredCSFJabberMRA"
+	RegisteredCSFJabberNonMRA = "RegisteredCSFJabberNonMRA"
+	RegisteredTABJabberMRA    = "RegisteredTABJabberMRA"
+	RegisteredTABJabberNonMRA = "RegisteredTABJabberNonMRA"
+	RegisteredTCTJabberMRA    = "RegisteredTCTJabberMRA"
+	RegisteredTCTJabberNonMRA = "RegisteredTCTJabberNonMRA"
+
 	// SIPLineServerAuthorizationChallenges SIP
 	SIPLineServerAuthorizationChallenges     = "SIPLineServerAuthorizationChallenges"
 	SIPLineServerAuthorizationFailures       = "SIPLineServerAuthorizationFailures"
@@ -184,6 +193,15 @@ var (
 		{allowedCounterName: VideoOnHoldOutOfResources, prometheusName: "cucm_video_on_hold_out_of_resources", defaultEnabled: false},
 		{allowedCounterName: VideoOnHoldResourceActive, prometheusName: "cucm_video_on_hold_resource_active", defaultEnabled: false},
 		{allowedCounterName: VideoOutOfResources, prometheusName: "cucm_video_out_of_resources", defaultEnabled: false},
+		// jabber
+		{allowedCounterName: RegisteredBOTJabberMRA, prometheusName: "cucm_registered_bot_jabber_mra", defaultEnabled: false},
+		{allowedCounterName: RegisteredBOTJabberNonMRA, prometheusName: "cucm_registered_bot_jabber_non_mra", defaultEnabled: false},
+		{allowedCounterName: RegisteredCSFJabberMRA, prometheusName: "cucm_registered_csf_jabber_mra", defaultEnabled: false},
+		{allowedCounterName: RegisteredCSFJabberNonMRA, prometheusName: "cucm_registered_csf_jabber_non_mra", defaultEnabled: false},
+		{allowedCounterName: RegisteredTABJabberMRA, prometheusName: "cucm_registered_tab_jabber_mra", defaultEnabled: false},
+		{allowedCounterName: RegisteredTABJabberNonMRA, prometheusName: "cucm_registered_tab_jabber_non_mra", defaultEnabled: false},
+		{allowedCounterName: RegisteredTCTJabberMRA, prometheusName: "cucm_registered_tct_jabber_mra", defaultEnabled: false},
+		{allowedCounterName: RegisteredTCTJabberNonMRA, prometheusName: "cucm_registered_tct_jabber_non_mra", defaultEnabled: false},
 		// cisco recording
 		{allowedCounterName: GatewayRegistrationFailures, prometheusName: "cucm_gateway_registration_failures", defaultEnabled: false},
 		{allowedCounterName: GatewaysInService, prometheusName: "cucm_gateways_in_service", defaultEnabled: false},

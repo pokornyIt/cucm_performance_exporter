@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/alecthomas/kingpin/v2"
-	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 	"os"
 	"path"
 	"regexp"
 	"strings"
+
+	"github.com/alecthomas/kingpin/v2"
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -71,6 +72,14 @@ type MetricsEnabled struct {
 	RegisteredAnalogAccess                    bool `yaml:"registeredAnalogAccess" json:"registeredAnalogAccess"`
 	RegisteredMGCPGateway                     bool `yaml:"registeredMGCPGateway" json:"registeredMGCPGateway"`
 	RegisteredOtherStationDevices             bool `yaml:"registeredOtherStationDevices" json:"registeredOtherStationDevices"`
+	RegisteredBOTJabberMRA                    bool `yaml:"registeredBOTJabberMRA" json:"registeredBOTJabberMRA"`
+	RegisteredBOTJabberNonMRA                 bool `yaml:"registeredBOTJabberNonMRA" json:"registeredBOTJabberNonMRA"`
+	RegisteredCSFJabberMRA                    bool `yaml:"registeredCSFJabberMRA" json:"registeredCSFJabberMRA"`
+	RegisteredCSFJabberNonMRA                 bool `yaml:"registeredCSFJabberNonMRA" json:"registeredCSFJabberNonMRA"`
+	RegisteredTABJabberMRA                    bool `yaml:"registeredTABJabberMRA" json:"registeredTABJabberMRA"`
+	RegisteredTABJabberNonMRA                 bool `yaml:"registeredTABJabberNonMRA" json:"registeredTABJabberNonMRA"`
+	RegisteredTCTJabberMRA                    bool `yaml:"registeredTCTJabberMRA" json:"registeredTCTJabberMRA"`
+	RegisteredTCTJabberNonMRA                 bool `yaml:"registeredTCTJabberNonMRA" json:"registeredTCTJabberNonMRA"`
 	SIPLineServerAuthorizationChallenges      bool `yaml:"sipLineServerAuthorizationChallenges" json:"sipLineServerAuthorizationChallenges"`
 	SIPLineServerAuthorizationFailures        bool `yaml:"sipLineServerAuthorizationFailures" json:"sipLineServerAuthorizationFailures"`
 	SIPTrunkApplicationAuthorizationFailures  bool `yaml:"sipTrunkApplicationAuthorizationFailures" json:"sipTrunkApplicationAuthorizationFailures"`
@@ -170,6 +179,14 @@ var (
 			RegisteredAnalogAccess:                    false,
 			RegisteredMGCPGateway:                     false,
 			RegisteredOtherStationDevices:             false,
+			RegisteredBOTJabberMRA:                    false,
+			RegisteredBOTJabberNonMRA:                 false,
+			RegisteredCSFJabberMRA:                    false,
+			RegisteredCSFJabberNonMRA:                 false,
+			RegisteredTABJabberMRA:                    false,
+			RegisteredTABJabberNonMRA:                 false,
+			RegisteredTCTJabberMRA:                    false,
+			RegisteredTCTJabberNonMRA:                 false,
 			SIPLineServerAuthorizationChallenges:      false,
 			SIPLineServerAuthorizationFailures:        false,
 			SIPTrunkApplicationAuthorizationFailures:  false,
@@ -540,6 +557,30 @@ func (m *MetricsEnabled) enablePrometheusCounter(name string) bool {
 	}
 	if name == RegisteredOtherStationDevices {
 		return m.RegisteredOtherStationDevices
+	}
+	if name == RegisteredBOTJabberMRA {
+		return m.RegisteredBOTJabberMRA
+	}
+	if name == RegisteredBOTJabberNonMRA {
+		return m.RegisteredBOTJabberNonMRA
+	}
+	if name == RegisteredCSFJabberMRA {
+		return m.RegisteredCSFJabberMRA
+	}
+	if name == RegisteredCSFJabberNonMRA {
+		return m.RegisteredCSFJabberNonMRA
+	}
+	if name == RegisteredTABJabberMRA {
+		return m.RegisteredTABJabberMRA
+	}
+	if name == RegisteredTABJabberNonMRA {
+		return m.RegisteredTABJabberNonMRA
+	}
+	if name == RegisteredTCTJabberMRA {
+		return m.RegisteredTCTJabberMRA
+	}
+	if name == RegisteredTCTJabberNonMRA {
+		return m.RegisteredTCTJabberNonMRA
 	}
 
 	return false
