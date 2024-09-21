@@ -3,7 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/pokornyIt/cucm_performance_exporter)](https://goreportcard.com/report/github.com/pokornyIt/cucm_performance_exporter)
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/pokornyit/cucm_performance_exporter?label=latest)](https://github.com/pokornyIt/cucm_performance_exporter/releases/latest)
 
-# CUCM Performace Exporter
+# CUCM Performance Exporter
 
 Prometheus exporter for CISCO Unified Communication Manager performance metrics. Project
 utilize [CISCO CUCM Performance API](https://developer.cisco.com/site/sxml/discover/overview/perfmon/). System tested on
