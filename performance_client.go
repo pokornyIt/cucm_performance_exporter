@@ -5,9 +5,11 @@ import (
 	"crypto/tls"
 	"encoding/xml"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"net/http"
+	"net/http/cookiejar"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // ApiMonitorClient API client
@@ -22,12 +24,15 @@ type ApiMonitorClient struct {
 // NewApiMonitorClient create new API client with prepared http.Client
 func NewApiMonitorClient() *ApiMonitorClient {
 	var cp ApiMonitorClient
+
+	jar, _ := cookiejar.New(nil)
+
 	if config.IgnoreCertificate {
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
 		cp = ApiMonitorClient{
-			client:         &http.Client{Transport: tr},
+			client:         &http.Client{Transport: tr, Jar: jar},
 			requests:       0,
 			responses:      0,
 			responseErrors: 0,
@@ -35,7 +40,7 @@ func NewApiMonitorClient() *ApiMonitorClient {
 		}
 	} else {
 		cp = ApiMonitorClient{
-			client:         &http.Client{},
+			client:         &http.Client{Jar: jar},
 			requests:       0,
 			responses:      0,
 			responseErrors: 0,
@@ -61,9 +66,11 @@ func (p *ApiMonitorClient) processRequest(name string, inner string) (body strin
 		log.WithFields(p.logFields(name)).Errorf("problem prepare %s request. Error: %s", name, err)
 		return "", err
 	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(config.ApiTimeout)*time.Second)
 	defer cancel()
 	req = req.WithContext(ctx)
+
 	body, resp, err = perfRequestResponse(requestId, p.client, req)
 	if resp != nil && resp.StatusCode > 299 {
 		log.WithFields(p.logFields(name)).Errorf("problem read %s response. Status code: %s", name, resp.Status)
@@ -81,6 +88,16 @@ func (p *ApiMonitorClient) processRequest(name string, inner string) (body strin
 		p.responseErrors++
 		return "", err
 	}
+
+	for _, cookie := range resp.Cookies() {
+		if cookie.Name == "JSESSIONIDSSO" {
+			p.session = cookie.Value
+			log.WithFields(p.logFields(name)).Debugf("JSESSIONIDSSO cookie received and stored: %s", p.session)
+			break
+		}
+		log.WithFields(p.logFields(name)).Debugf("no cookie JSESSIONIDSSO")
+	}
+
 	p.responses++
 	body, err = perfRequestBodyRelevant(body)
 	if err != nil {
