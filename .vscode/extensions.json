@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "golang.go",
+        "premparihar.gotestexplorer",
+        "maracko.json-to-go",
+        "maxnatchanon.go-struct-tag-autogen"
+    ]
+}

@@ -1,0 +1,66 @@
+{
+    "go.lintOnSave": "package",
+    "json-to-go.autoSelectTypeName": true,
+    "json-to-go.inlineTypeDefinitions": false,
+    "json-to-go.io.input": "ask me every time",
+    "json-to-go.io.output": "ask me every time",
+    "json-to-go.pasteIntegration.promptForTypeName": true,
+    "json-to-go.saveConversions": false,
+    "goStructTagAutogen.tagSuggestion": {
+        "json": {
+            "cases": [
+                "camel",
+            ],
+            "optins": [
+                "omitempty",
+                "-"
+            ]
+        },
+        "bsob": {
+            "cases": [
+                "snake"
+            ],
+            "optins": [
+                "omitempty",
+                "-"
+            ]
+        },
+        "yaml": {
+            "cases": [
+                "camel",
+            ],
+            "optins": [
+                "omitempty",
+                "-"
+            ]
+        },
+        "binding": {
+            "options": [
+                "required",
+                "omitempty",
+                "-"
+            ]
+        }
+    },
+    "goStructTagAutogen.valueSuggestion": {
+        "json": [
+            "omitempty"
+        ],
+        "bson": [
+            "omitempty"
+        ],
+        "binding": [
+            "required"
+        ]
+    },
+    "goStructTagAutogen.generation": {
+        "template": "json:\"{{camel}}\" yaml:\"{{camel}}\""
+    },
+    "cSpell.reportUnknownWords": true,
+    "editor.formatOnSave": true,
+    "files.autoSave": "afterDelay",
+    "editor.formatOnSaveMode": "file",
+    "go.testOnSave": false,
+    "go.coverOnSave": false,
+    "markdown.extension.toc.updateOnSave": true,
+}

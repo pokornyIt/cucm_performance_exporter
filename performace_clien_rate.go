@@ -33,7 +33,7 @@ func (r *RateControl) reset() {
 
 func (r *RateControl) delay() time.Duration {
 	defer r.add()
-	timePeriod := time.Now().Sub(r.start)
+	timePeriod := time.Since(r.start)
 	waitTime := RateBaseWaitTime - timePeriod
 	if r.requests < RateRequestLimit {
 		if timePeriod > RateStandardTestDelay*time.Duration(r.requests) {

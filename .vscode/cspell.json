@@ -1,0 +1,38 @@
+{
+    "words": [
+        "alecthomas",
+        "chardata",
+        "cucm",
+        "Debugf",
+        "DEVNET",
+        "Elevēo",
+        "faultcode",
+        "faultstring",
+        "goland",
+        "Infof",
+        "JSESSIONIDSSO",
+        "logrus",
+        "MGCP",
+        "natefinch",
+        "perfmon",
+        "perfmonservice",
+        "Prettyfier",
+        "promhttp",
+        "sirupsen",
+        "soapenv",
+        "Tracef",
+        "Warnf"
+    ],
+    "flagWords": [
+        "\"teh: the\""
+    ],
+    "enabled": true,
+    "dictionaries": [
+        "go",
+        "goland",
+        "xml",
+        "yaml",
+        "json",
+        "markdown"
+    ]
+}

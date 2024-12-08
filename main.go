@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/alecthomas/kingpin/v2"
-	"github.com/prometheus/common/version"
-	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"os"
 	"os/signal"
 	"strings"
 	"time"
+
+	"github.com/alecthomas/kingpin/v2"
+	"github.com/prometheus/common/version"
+	log "github.com/sirupsen/logrus"
 )
 
 //goland:noinspection SpellCheckingInspection
@@ -85,6 +86,7 @@ func duration(fields log.Fields, msg string, timeStart time.Time) {
 func monitoringProcess() {
 	var roundStartTime time.Time
 	var durationWait time.Duration
+	var sleepBetweenRequest time.Duration
 
 	defer duration(track(log.Fields{FieldRoutine: "monitoringProcess"}, "procedure ends"))
 	log.WithFields(log.Fields{FieldRoutine: "monitoringProcess"}).Debug("start with configuration")
@@ -141,11 +143,12 @@ func monitoringProcess() {
 			} else {
 				log.WithFields(log.Fields{FieldRoutine: "monitoringProcess"}).Trace("collect session data")
 			}
-			durationWait = time.Second*time.Duration(config.SleepBetweenRequest) - time.Now().Sub(roundStartTime)
+			sleepBetweenRequest = time.Duration(config.SleepBetweenRequest) * time.Second
+			durationWait = sleepBetweenRequest - time.Since(roundStartTime)
 			if !monitors.ExistSession() {
 				durationWait = time.Second * 60 // wait for the next try to connect to the server
 			} else if durationWait < 1*time.Millisecond {
-				durationWait = 1 * time.Second // Wait time is too shor wait 1 second
+				durationWait = 1 * time.Second // Wait time is too short, wait 1 second
 			}
 			select {
 			case <-toStopChannel:

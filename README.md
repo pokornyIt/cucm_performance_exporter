@@ -181,7 +181,7 @@ Program support CLI parameters. All parameters are optional and overwrite same c
 
 We welcome any contributions. Please fork the project on GitHub and open Pull Requests for any proposed changes.
 
-Please note that we will not merge any changes that encourage insecure behaviour. If in doubt please open an Issue first
+Please note that we will not merge any changes that encourage insecure behavior. If in doubt please open an Issue first
 to discuss your proposal.
 
 # Sponsoring
